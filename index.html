@@ -69,7 +69,7 @@
     <!-- Paquetes -->
     <section class="grid md:grid-cols-3 gap-4 mb-8">
       <div class="glass rounded-2xl p-5" id="pkg-Express">
-        <div class="flex items-center justify_between mb-1">
+        <div class="flex items-center justify-between mb-1">
           <h2 class="text-lg font-bold">Express</h2>
           <span class="tag">60 min</span>
         </div>
@@ -96,6 +96,43 @@
         <button data-pkg="Premium" class="selectPkg w-full mt-2 px-4 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40">Elegir Premium</button>
       </div>
     </section>
+<!-- Agendar con Google Calendar (embebido) -->
+<section id="gcal" class="glass rounded-2xl p-5 mt-8">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="font-semibold text-lg">Agendar con Google Calendar</h3>
+    <div class="flex gap-2">
+      <button type="button" class="gc-tab px-3 py-2 rounded-xl border border-white/10" data-gc="artista">ARTISTA</button>
+      <button type="button" class="gc-tab px-3 py-2 rounded-xl border border-white/10" data-gc="express">Express</button>
+      <button type="button" class="gc-tab px-3 py-2 rounded-xl border border-white/10" data-gc="premium">Premium</button>
+    </div>
+  </div>
+
+  <!-- Paneles (uno por paquete). Por defecto ocultos con hidden -->
+  <div id="gc-artista" class="gc-pane" hidden>
+    <!-- Google Calendar Appointment Scheduling begin -->
+    <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ3H_MANsRvT42Xqp8cu0_iT1nHI4m6dv5MLOiyydYtuKXYtxhlYykAS8fGYz6yaIV8XToGC04nQ?gv=true"
+            style="border:0" width="100%" height="600" frameborder="0"></iframe>
+    <!-- end Google Calendar Appointment Scheduling -->
+  </div>
+
+  <div id="gc-express" class="gc-pane" hidden>
+    <!-- Google Calendar Appointment Scheduling begin -->
+    <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ3g9-jnvbklnIaDU9Tmi0-ErhTPLRNXwCg8LCB0eujp7S1V8kNV17aCz_bcgkrtXw1aItRvEmTQ?gv=true"
+            style="border:0" width="100%" height="600" frameborder="0"></iframe>
+    <!-- end Google Calendar Appointment Scheduling -->
+  </div>
+
+  <div id="gc-premium" class="gc-pane" hidden>
+    <!-- Google Calendar Appointment Scheduling begin -->
+    <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ1tQtWbDLpG67VoRU7guqmwV2NxL24uPRnrteJ0ye7mPeliJ1BrWaZWShYGEIjkQ23SC7G9oV4i?gv=true"
+            style="border:0" width="100%" height="600" frameborder="0"></iframe>
+    <!-- end Google Calendar Appointment Scheduling -->
+  </div>
+
+  <p class="text-xs text-slate-400 mt-3">
+    Tip: si no ves el calendario embebido, abrilo en una pestaña nueva desde los tres puntitos del iframe.
+  </p>
+</section>
 
     <!-- Accesorios -->
     <section class="glass rounded-2xl p-5 mb-8">
@@ -346,7 +383,9 @@
         renderSummary();
         fetchAvailability();
         refreshSlots();
-        window.scrollTo({top: document.body.scrollHeight/4, behavior:'smooth'});
+        openGCalFor(state.pkgKey);
+
+
       });
     });
 
@@ -598,7 +637,6 @@ const lines = [
 const waHref = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
 window.open(waHref, '_blank');
 
-          window.open(waHref, '_blank');
         }
         return { ok: true, id: state.lastBookingId || null };
       } else {
@@ -655,7 +693,6 @@ const lines = [
 const waHref = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
 window.open(waHref, '_blank');
 
-    window.open(waHref, '_blank');
   }
   return { ok: true, id };
 }
@@ -727,6 +764,42 @@ form.addEventListener('submit', async (e) => {
     const tcModal = document.getElementById('tcModal');
     document.getElementById('openTC').onclick = ()=> tcModal.showModal();
     document.getElementById('closeTC').onclick = ()=> tcModal.close();
+// ====== GOOGLE CALENDAR TABS ======
+function setGCTab(tab) {
+  const ids = ['artista','express','premium'];
+  // ocultar todos
+  ids.forEach(id => {
+    const pane = document.getElementById('gc-' + id);
+    if (pane) pane.setAttribute('hidden', '');
+  });
+  // mostrar el seleccionado
+  const current = document.getElementById('gc-' + tab);
+  if (current) current.removeAttribute('hidden');
+
+  // estilos visuales de los botones
+  document.querySelectorAll('.gc-tab').forEach(btn => {
+    const active = btn.dataset.gc === tab;
+    btn.classList.toggle('ring-2', active);
+    btn.classList.toggle('ring-sky-400', active);
+    btn.classList.toggle('bg-white/10', active);
+  });
+}
+
+// abre el tab correcto según el paquete
+function openGCalFor(pkgKey) {
+  const map = { 'ARTISTA':'artista', 'Express':'express', 'Premium':'premium' };
+  const tab = map[pkgKey] || 'express';
+  setGCTab(tab);
+  const sec = document.getElementById('gcal');
+  if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// clicks manuales en las pestañas
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.gc-tab');
+  if (!btn) return;
+  setGCTab(btn.dataset.gc);
+});
 
     // ====== INIT ======
     (function init(){
@@ -757,7 +830,8 @@ form.addEventListener('submit', async (e) => {
 
       // Disponibilidad: WhatsApp link
       state.pkgKey = 'Express'; state.dateISO = toISODate(new Date()); state.slotStart = '10:00'; renderSummary();
-      assert('WhatsApp link generado', !!document.getElementById('whatsHeader').href);
+      assert('WhatsApp link generado', typeof window.__waHref === 'string' && window.__waHref.includes('wa.me'));
+
 
       // === Tests de bloqueos ===
       const storeBackup = localStorage.getItem(store.key) || '[]';
