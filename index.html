@@ -15,10 +15,9 @@
     .glass{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08)}
     .kbd{border:1px solid #3b4252;background:#0f172a;border-radius:.5rem;padding:.15rem .4rem;font-size:.75rem}
     .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.5rem}
-    .day-cell{aspect-ratio:1/1;border-radius:.75rem;padding:.5rem;display:flex;flex-direction:column;justify-content:space-between;border:1px dashed rgba(255,255,255,.08);cursor:pointer}
-    .day-disabled{opacity:.35;filter:grayscale(.3);cursor:not-allowed}
-    .day-blocked{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);cursor:not-allowed}
-    .slot{border:1px solid rgba(255,255,255,.1);border-radius:.75rem;padding:.6rem .75rem;display:flex;justify-content:space-between;align-items:center;width:100%}
+    .day-cell{aspect-ratio:1/1;border-radius:.75rem;padding:.5rem;display:flex;flex-direction:column;justify-content:space-between;border:1px dashed rgba(255,255,255,.08)}
+    .day-disabled{opacity:.35;filter:grayscale(.3)}
+    .slot{border:1px solid rgba(255,255,255,.1);border-radius:.75rem;padding:.6rem .75rem;display:flex;justify-content:space-between;align-items:center}
     .slot[disabled]{opacity:.4;cursor:not-allowed}
     .tag{font-size:.7rem;border:1px solid rgba(255,255,255,.18);padding:.1rem .4rem;border-radius:.4rem}
   </style>
@@ -47,15 +46,15 @@
     <section class="glass rounded-2xl p-4 sm:p-6 mb-6">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="space-y-1">
-          <p class="text-slate-200 text-sm">Disponibilidad: <span class="font-semibold">Sábados y Domingos</span> · <span class="font-semibold">10:00 a. m.</span> a <span class="font-semibold">6:00 p. m.</span></p>
-          <p class="text-slate-400 text-xs">Express bloquea 3h, ARTISTA bloquea 5h, Premium bloquea todo el día. Extra: $200/h si se excede.
+          <p class="text-slate-2 00 text-sm">Disponibilidad: <span class="font-semibold">Sábados y Domingos</span> · <span class="font-semibold">10:00 a. m.</span> a <span class="font-semibold">6:00 p. m.</span></p>
+          <p class="text-slate-400 text-xs">Última hora permitida = que la sesión termine a más tardar 6:00 p. m. (se calcula según el paquete). Extra: $200/h si se excede.
             Cámara incluida (no aparece en accesorios). En paquete Express máximo 2 accesorios. <strong>Drone no disponible en Express ni en ARTISTA.</strong></p>
         </div>
         <div class="flex gap-2 text-xs text-slate-300">
-          <span class="kbd">1) Paquete</span>
-          <span class="kbd">2) Día</span>
-          <span class="kbd">3) Hora</span>
-          <span class="kbd">4) Reservar</span>
+          <span class="kbd">? Paquete</span>
+          <span class="kbd">Click día</span>
+          <span class="kbd">Elige hora</span>
+          <span class="kbd">Reserva</span>
         </div>
       </div>
     </section>
@@ -67,8 +66,8 @@
           <h2 class="text-lg font-bold">Express</h2>
           <span class="tag">60 min</span>
         </div>
-        <p class="text-2xl font-extrabold">$200</p>
-        <p class="text-slate-400 text-sm mb-4">Bloquea 3 horas. Incluye cámara. Máximo 2 accesorios. <strong>Sin Drone.</strong></p>
+        <p class="text-2xl font-extrabold">$100</p>
+        <p class="text-slate-400 text-sm mb-4">Buffer de 2 h después. Incluye cámara. Máximo 2 accesorios. <strong>Sin Drone.</strong></p>
         <button data-pkg="Express" class="selectPkg w-full mt-2 px-4 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40">Elegir Express</button>
       </div>
       <div class="glass rounded-2xl p-5" id="pkg-ARTISTA">
@@ -76,8 +75,8 @@
           <h2 class="text-lg font-bold">ARTISTA</h2>
           <span class="tag">180 min</span>
         </div>
-        <p class="text-2xl font-extrabold">$450</p>
-        <p class="text-slate-400 text-sm mb-4">Bloquea 5 horas. Incluye cámara. Hasta 5 accesorios. <strong>Sin Drone.</strong></p>
+        <p class="text-2xl font-extrabold">$150</p>
+        <p class="text-slate-400 text-sm mb-4">Incluye cámara. Hasta 5 accesorios. <strong>Sin Drone.</strong></p>
         <button data-pkg="ARTISTA" class="selectPkg w-full mt-2 px-4 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40">Elegir ARTISTA</button>
       </div>
       <div class="glass rounded-2xl p-5" id="pkg-Premium">
@@ -85,8 +84,8 @@
           <h2 class="text-lg font-bold">Premium</h2>
           <span class="tag">240 min</span>
         </div>
-        <p class="text-2xl font-extrabold">$900</p>
-        <p class="text-slate-400 text-sm mb-4">Bloquea todo el día. Paquete completo. Accesorios a elección.</p>
+        <p class="text-2xl font-extrabold">$300</p>
+        <p class="text-slate-400 text-sm mb-4">Paquete completo. Accesorios a elección.</p>
         <button data-pkg="Premium" class="selectPkg w-full mt-2 px-4 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40">Elegir Premium</button>
       </div>
     </section>
@@ -115,7 +114,7 @@
           <div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sá</div><div>Do</div>
         </div>
         <div id="calGrid" class="cal-grid"></div>
-        <p class="text-xs text-slate-400 mt-3">Gris = no disponible. Rojo = día bloqueado por reserva Premium. Solo fines de semana disponibles.</p>
+        <p class="text-xs text-slate-400 mt-3">Gris = no disponible. Solo fines de semana. La hora se elige a la derecha.</p>
       </div>
 
       <div class="lg:col-span-2 glass rounded-2xl p-5">
@@ -170,7 +169,7 @@
 
     <!-- Cancelación por consecutivo -->
     <section class="glass rounded-2xl p-5 mt-6">
-      <h3 class="font-semibold mb-3">Cancelar / Ver reserva (por consecutivo)</h3>
+      <h3 class="font-semibold mb-3">Cancelar / Rehabilitar reserva (por consecutivo)</h3>
       <div class="flex flex-col sm:flex-row gap-2">
         <input id="cancelId" class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10" placeholder="Ej. BHM-20250812-0003" />
         <button id="btnLocate" type="button" class="px-4 py-2 rounded-xl border border-white/20">Ver en calendario</button>
@@ -187,10 +186,10 @@
           <button id="closeTC" class="px-3 py-2 rounded-xl border border-white/20">Cerrar</button>
         </div>
         <ol class="list-decimal list-inside text-sm text-slate-300 space-y-2">
-          <li>Agenda disponible <strong>únicamente</strong> sábados y domingos entre <strong>10:00 a. m.</strong> y <strong>6:00 p. m.</strong></li>
-          <li>Paquetes y precios (USD): Express $200 (bloquea 3h), ARTISTA $450 (bloquea 5h), Premium $900 (bloquea todo el día). Hora adicional: $200.</li>
+          <li>Agenda disponible <strong>únicamente</strong> sábados y domingos entre <strong>10:00 a. m.</strong> y <strong>6:00 p. m.</strong> La última hora disponible dependerá del paquete elegido.</li>
+          <li>Paquetes y precios (USD): Express $100 (60 min), ARTISTA $150 (180 min), Premium $300 (240 min). Hora adicional: $200.</li>
           <li>Paquete Express permite <strong>máximo 2</strong> accesorios. <strong>Drone no disponible en Express ni en ARTISTA.</strong> La cámara está incluida en todos los paquetes.</li>
-          <li>El tiempo de bloqueo es para garantizar exclusividad y preparación del equipo.</li>
+          <li>Si se excede el tiempo del paquete, se facturará la hora adicional indicada. La fracción superior a 15 minutos cuenta como hora completa.</li>
           <li>Reprogramaciones: con mínimo 48 h de anticipación. El mismo día no se reprograma salvo fuerza mayor.</li>
           <li>Al reservar se solicita confirmación por WhatsApp. La fecha no se garantiza sin confirmación.</li>
           <li>El desplazamiento fuera del GAM puede generar costos adicionales.</li>
@@ -213,11 +212,16 @@
       endHour: 18,        // 18:00 -> la sesión debe terminar a esta hora o antes
       stepMinutes: 30,    // intervalos para mostrar slots
       whatsappNumber: '50670166631',
-      api: { availabilityGET: null, bookingPOST: null },
+      api: {
+        // availabilityGET debe responder: { ok:true, busy:[{start:'HH:MM', end:'HH:MM'}] }
+        // bookingPOST debe aceptar el payload y devolver { ok:true, id:'<consecutivo>' }
+        availabilityGET: null, // 'https://script.google.com/macros/s/XXXX/exec?action=availability&date=YYYY-MM-DD'
+        bookingPOST: null      // 'https://script.google.com/macros/s/XXXX/exec'
+      },
       packages: {
-        Express:  { price: 200, duration: 60,  blockHours: 3,   maxAccessories: 2,   banned:['Drone'] },
-        ARTISTA:  { price: 450, duration: 180, blockHours: 5,   maxAccessories: 5,   banned:['Drone'] },
-        Premium:  { price: 900, duration: 240, blockHours: 8,   maxAccessories: 999, banned:[] } // 8h = todo el día (10am-6pm)
+        Express:  { price: 100, duration: 60,  bufferAfter: 120, maxAccessories: 2,   banned:['Drone'] },
+        ARTISTA:  { price: 150, duration: 180, bufferAfter: 0,   maxAccessories: 5,   banned:['Drone'] },
+        Premium:  { price: 300, duration: 240, bufferAfter: 0,   maxAccessories: 999, banned:[] }
       },
       extraHourUSD: 200,
       accessories: [
@@ -229,28 +233,29 @@
     const state = {
       pkgKey: null,
       acc: new Set(),
-      dateISO: null,
-      slotStart: null,
-      blockedDays: new Set(), // días completamente bloqueados por Premium
-      lastBookingId: null,
-      viewDate: new Date() // mes en vista
+      dateISO: null, // YYYY-MM-DD
+      slotStart: null, // 'HH:MM'
+      dayBusy: [], // [{start,end}] desde backend/demo
+      lastBookingId: null // consecutivo más reciente (opcional, para Whats/UX)
     };
 
-    // ====== STORAGE (local) ======
+    // ====== STORAGE (demo sin backend) ======
     const store = {
       key: 'bhouse_bookings',
-      seqKey: (dateStr)=> 'bhouse_seq_' + dateStr,
+      seqKey: (dateStr)=> 'bhouse_seq_' + dateStr, // por día
       load(){ try { return JSON.parse(localStorage.getItem(this.key) || '[]'); } catch{ return []; } },
       save(arr){ localStorage.setItem(this.key, JSON.stringify(arr)); },
       nextId(){
         const today = new Date();
-        const ymd = today.toISOString().slice(0,10).replace(/-/g,'');
+        const ymd = today.toISOString().slice(0,10).replace(/-/g,''); // YYYYMMDD
         const k = this.seqKey(ymd);
         const next = (parseInt(localStorage.getItem(k)||'0',10) || 0) + 1;
         localStorage.setItem(k, String(next));
         return `BHM-${ymd}-${String(next).padStart(4,'0')}`;
       },
-      addBooking(b){ const arr = this.load(); arr.push(b); this.save(arr); },
+      addBooking(b){
+        const arr = this.load(); arr.push(b); this.save(arr);
+      },
       removeById(id){
         const arr = this.load();
         const idx = arr.findIndex(x=> x.id===id);
@@ -261,28 +266,27 @@
       busyForDate(dateISO){
         return this.load()
           .filter(b=> b.date===dateISO)
-          .map(b=> ({start:b.start, end:b.end, pkg:b.pkg})); // end ya incluye bloqueo
-      },
-      getBlockedDays(){
-        const bookings = this.load();
-        const blocked = new Set();
-        bookings.forEach(b => { if(b.pkg === 'Premium') blocked.add(b.date); });
-        return blocked;
+          .map(b=> ({start:b.start, end:b.end}));
       }
     };
 
-    // ====== UTILS TIEMPO ======
+    // ====== UTILS ======
     const pad = n => String(n).padStart(2,'0');
     const fmtMoney = v => `$${v.toLocaleString('en-US', {minimumFractionDigits:0})}`;
     const toISODate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     const parseISODate = (iso) => { const [y,m,da]=iso.split('-').map(Number); return new Date(y, m-1, da); };
-    const fmtHuman = (iso) => { const d = parseISODate(iso); return d.toLocaleDateString('es-CR', { weekday:'long', day:'2-digit', month:'long' }); };
-    const hmToMin = (t) => { const [H,M] = t.split(':').map(Number); return H*60+M; };
-    const minToHm = (m) => { const H = Math.floor(m/60), M = m%60; return `${pad(H)}:${pad(M)}`; };
-    const clampDayStart = (H) => Math.max(H, CONFIG.startHour);
+    const fmtHuman = (iso) => {
+      const d = parseISODate(iso);
+      return d.toLocaleDateString('es-CR', { weekday:'long', day:'2-digit', month:'long' });
+    };
+    const addMinutes = (timeStr, mins) => {
+      const [H,M] = timeStr.split(':').map(Number);
+      const d = new Date(); d.setHours(H, M, 0, 0); d.setMinutes(d.getMinutes()+mins);
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
     const overlaps = (aStart, aEnd, bStart, bEnd) => !(aEnd <= bStart || aStart >= bEnd);
 
-    // ====== ACCESORIOS RENDER ======
+    // ====== ACCESSORIOS RENDER ======
     const accWrap = document.getElementById('acc-list');
     CONFIG.accessories.forEach((label)=>{
       const el = document.createElement('label');
@@ -301,10 +305,12 @@
       });
     }
 
+    // (FIX) listener: selector corregido
     accWrap.addEventListener('change', (e)=>{
-      if(!e.target.matches('input[type="checkbox"])')) return;
+      if(!e.target.matches('input[type="checkbox"]')) return;
       const label = e.target.getAttribute('data-acc');
       if(e.target.checked){ state.acc.add(label); } else { state.acc.delete(label); }
+      // Enforce max accesorios por paquete (Express=2, ARTISTA=5)
       const pkg = state.pkgKey ? CONFIG.packages[state.pkgKey] : null;
       if(pkg){
         const allowed = pkg.maxAccessories;
@@ -316,315 +322,365 @@
       renderSummary();
     });
 
-    // ====== CALENDARIO ======
-    const calGrid = document.getElementById('calGrid');
-    const calTitle = document.getElementById('calTitle');
-    document.getElementById('prevMonth').addEventListener('click', ()=>{ state.viewDate.setMonth(state.viewDate.getMonth()-1); renderCalendar(); });
-    document.getElementById('nextMonth').addEventListener('click', ()=>{ state.viewDate.setMonth(state.viewDate.getMonth()+1); renderCalendar(); });
+    // ====== PAQUETES ======
+    document.querySelectorAll('.selectPkg').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        state.pkgKey = btn.dataset.pkg;
+        document.querySelectorAll('[id^="pkg-"]').forEach(c=>c.classList.remove('ring-2','ring-sky-400'));
+        document.getElementById(`pkg-${state.pkgKey}`).classList.add('ring-2','ring-sky-400');
+        // Limitar accesorios según paquete y recortar si excede
+        const pkg = CONFIG.packages[state.pkgKey];
+        if(state.acc.size > pkg.maxAccessories){
+          state.acc = new Set([...state.acc].slice(0, pkg.maxAccessories));
+        }
+        // Sync checkboxes + ban Drone según paquete
+        document.querySelectorAll('#acc-list input[type="checkbox"]').forEach(chk=>{
+          const label = chk.getAttribute('data-acc');
+          chk.checked = state.acc.has(label);
+        });
+        refreshAccessoryStates();
+        renderSummary();
+        fetchAvailability();
+        refreshSlots();
+        window.scrollTo({top: document.body.scrollHeight/4, behavior:'smooth'});
+      });
+    });
 
-    function updateBlockedDays(){ state.blockedDays = store.getBlockedDays(); }
+    // ====== CALENDARIO ======
+    const calTitle = document.getElementById('calTitle');
+    const calGrid = document.getElementById('calGrid');
+    const slotDateLabel = document.getElementById('slotDateLabel');
+    let viewYear, viewMonth; // 0..11
+
+    function setMonth(y,m){ viewYear=y; viewMonth=m; renderCalendar(); }
 
     function renderCalendar(){
-      const y = state.viewDate.getFullYear();
-      const m = state.viewDate.getMonth();
-      const first = new Date(y, m, 1);
-      const firstD = (first.getDay() + 6) % 7; // lunes=0..dom=6
-      const daysInMonth = new Date(y, m+1, 0).getDate();
-      calTitle.textContent = `Calendario — ${first.toLocaleDateString('es-CR',{month:'long', year:'numeric'})}`;
+      const first = new Date(viewYear, viewMonth, 1);
+      const last = new Date(viewYear, viewMonth+1, 0);
+      calTitle.textContent = `${first.toLocaleString('es-CR',{month:'long'})} ${viewYear}`;
+
+      let startIdx = (first.getDay() + 6) % 7; // 0=Mon
+      const cells = [];
+      const prevLast = new Date(viewYear, viewMonth, 0).getDate();
+      for(let i=startIdx-1;i>=0;i--){ cells.push({day: prevLast - i, other:true}); }
+      for(let d=1; d<=last.getDate(); d++){ cells.push({day:d, other:false}); }
+      while(cells.length % 7 !== 0){ cells.push({day: cells.length, other:true}); }
+
       calGrid.innerHTML = '';
-
-      // Celditas en blanco al inicio
-      for(let i=0;i<firstD;i++){ const p=document.createElement('div'); p.className='opacity-0'; calGrid.appendChild(p); }
-
-      for(let d=1; d<=daysInMonth; d++){
-        const date = new Date(y, m, d);
+      cells.forEach((c,idx)=>{
+        const inMonth = !c.other;
+        const date = new Date(viewYear, viewMonth, inMonth?c.day: (idx<startIdx? (new Date(viewYear, viewMonth, 0).getDate() - (startIdx-1-idx)) : (idx - (startIdx + (new Date(viewYear, viewMonth+1,0).getDate())) +1)) );
         const iso = toISODate(date);
-        const day = date.getDay(); // 0 dom .. 6 sab
-        const isWeekend = (day===0 || day===6);
-        const isBlocked = state.blockedDays.has(iso);
-
+        const isWeekend = CONFIG.workingDays.includes(date.getDay());
+        const isCurrentMonth = date.getMonth()===viewMonth;
+        const disabled = !isCurrentMonth || !isWeekend || date < new Date(new Date().toDateString());
         const cell = document.createElement('button');
-        cell.className = 'day-cell text-left';
-        if(!isWeekend) cell.classList.add('day-disabled');
-        if(isBlocked) cell.classList.add('day-blocked');
-
-        cell.innerHTML = `<div class="text-sm font-bold">${d}</div>
-          <div class="text-[10px] text-slate-400">${isBlocked ? 'Bloqueado' : (isWeekend? 'Disponible' : '—')}</div>`;
-
-        if(isWeekend && !isBlocked){
-          cell.addEventListener('click', ()=>{
-            state.dateISO = iso;
-            document.querySelectorAll('.day-cell').forEach(c=>c.classList.remove('ring-2','ring-sky-400'));
-            cell.classList.add('ring-2','ring-sky-400');
-            renderSlots();
-            renderSummary();
-          });
-        } else {
-          cell.disabled = true;
-        }
+        cell.className = `day-cell ${disabled? 'day-disabled':''}`;
+        cell.dataset.iso = iso; // para ubicar por ID
+        cell.innerHTML = `<div class="text-sm">${c.day}</div><div class="text-right text-[10px] text-slate-400">${isWeekend && isCurrentMonth ? 'Disponible' : ''}</div>`;
+        cell.addEventListener('click', ()=>{
+          if(disabled) return;
+          state.dateISO = iso; slotDateLabel.textContent = `· ${fmtHuman(iso)}`;
+          document.querySelectorAll('.day-cell').forEach(el=>el.classList.remove('ring-2','ring-sky-400'));
+          cell.classList.add('ring-2','ring-sky-400');
+          fetchAvailability().then(refreshSlots);
+        });
         calGrid.appendChild(cell);
+      });
+
+      // destacar si ya hay una fecha elegida
+      if(state.dateISO){
+        const chosen = [...calGrid.querySelectorAll('.day-cell')].find(x=> x.dataset.iso===state.dateISO);
+        if(chosen){ chosen.classList.add('ring-2','ring-sky-400'); }
+      }
+    }
+
+    document.getElementById('prevMonth').onclick = ()=>{
+      const d = new Date(viewYear, viewMonth-1, 1); setMonth(d.getFullYear(), d.getMonth());
+    };
+    document.getElementById('nextMonth').onclick = ()=>{
+      const d = new Date(viewYear, viewMonth+1, 1); setMonth(d.getFullYear(), d.getMonth());
+    };
+
+    // ====== DISPONIBILIDAD (BACKEND + DEMO LOCAL) ======
+    async function fetchAvailability(){
+      state.dayBusy = [];
+      if(!state.dateISO) return;
+
+      // 1) Backend (si existe)
+      if(CONFIG.api.availabilityGET){
+        try{
+          const url = `${CONFIG.api.availabilityGET}?date=${encodeURIComponent(state.dateISO)}` + (state.pkgKey? `&pkg=${encodeURIComponent(state.pkgKey)}`:'');
+          const res = await fetch(url);
+          const data = await res.json();
+          if(data && data.ok && Array.isArray(data.busy)){
+            state.dayBusy = data.busy; // [{start,end}]
+          }
+        }catch(err){ console.warn('No availability backend:', err); }
+      } else {
+        // 2) DEMO localStorage (sin backend)
+        state.dayBusy = store.busyForDate(state.dateISO);
       }
     }
 
     // ====== SLOTS ======
-    const slotWrap = document.getElementById('slots');
-    const slotDateLabel = document.getElementById('slotDateLabel');
+    const slotsWrap = document.getElementById('slots');
 
-    function listSlotsFor(dateISO){
-      const pkg = state.pkgKey ? CONFIG.packages[state.pkgKey] : null;
-      slotWrap.innerHTML = '';
-      slotDateLabel.textContent = dateISO ? `· ${fmtHuman(dateISO)}` : '';
+    async function refreshSlots(){
+      slotsWrap.innerHTML = '';
+      if(!state.dateISO){ slotsWrap.innerHTML = `<p class="text-slate-400 text-sm">Elegí primero un día del calendario.</p>`; return; }
+      if(!state.pkgKey){ slotsWrap.innerHTML = `<p class="text-slate-400 text-sm">Elegí primero un paquete.</p>`; return; }
 
-      if(!dateISO){ slotWrap.innerHTML = '<p class="text-slate-400 text-sm">Elige un día.</p>'; return; }
-      if(!pkg){ slotWrap.innerHTML = '<p class="text-slate-400 text-sm">Primero elige un paquete.</p>'; return; }
-
-      // Slots Premium: día completo, una sola opción
-      if(state.pkgKey==='Premium'){
-        const dayBusy = store.busyForDate(dateISO);
-        const blocked = state.blockedDays.has(dateISO);
-        const btn = document.createElement('button');
-        btn.className='slot';
-        btn.textContent = blocked? 'Día completo no disponible' : 'Reservar día completo (10:00–18:00)';
-        btn.disabled = blocked;
-        if(!blocked){ btn.addEventListener('click', ()=>{ state.slotStart = '10:00'; renderSummary(); }); }
-        slotWrap.appendChild(btn);
-        return;
+      const pkg = CONFIG.packages[state.pkgKey];
+      const start = CONFIG.startHour, end = CONFIG.endHour; // working window
+      const times = [];
+      for(let h=start; h<=end; h++){
+        for(let m=0; m<60; m+=CONFIG.stepMinutes){
+          const t = `${pad(h)}:${pad(m)}`;
+          const endTime = addMinutes(t, pkg.duration);
+          if(endTime <= `${pad(end)}:00`){ // must finish by endHour sharp
+            times.push(t);
+          }
+        }
       }
 
-      // Para Express/ARTISTA calcular ventanas disponibles
-      const busy = store.busyForDate(dateISO).map(b=>({
-        s: hmToMin(b.start),
-        e: hmToMin(b.end)
-      }));
-
-      const durBlock = CONFIG.packages[state.pkgKey].blockHours * 60; // minutos
-      const durSession = CONFIG.packages[state.pkgKey].duration; // minutos
-      const startMin = CONFIG.startHour*60;
-      const endMin = CONFIG.endHour*60;
-
-      for(let t=startMin; t<=endMin; t+=CONFIG.stepMinutes){
-        const candidateStart = t;
-        const sessionEnd = candidateStart + durSession;
-        const blockEnd = candidateStart + durBlock; // bloqueamos hacia adelante
-
-        // La sesión (no el bloqueo) debe terminar <= endHour
-        if(sessionEnd > endMin) break;
-
-        // El bloqueo no debe pasar el fin de día (para mantener la regla de exclusividad en el mismo día)
-        if(blockEnd > endMin) continue;
-
-        const conflicts = busy.some(b => overlaps(candidateStart, blockEnd, b.s, b.e));
-        const label = `${minToHm(candidateStart)} – ${minToHm(sessionEnd)}`;
+      const frag = document.createDocumentFragment();
+      times.forEach(t=>{
+        let disabled = false;
+        if(state.pkgKey==='Express'){
+          const endTime = addMinutes(t, pkg.duration);
+          const bufferEnd = addMinutes(endTime, pkg.bufferAfter);
+          if(bufferEnd > `${pad(end)}:00`) disabled = true;
+        }
+        // Bloqueos traídos (backend o demo)
+        for(const b of state.dayBusy){
+          const tEnd = addMinutes(t, pkg.duration);
+          if(overlaps(t, tEnd, b.start, b.end)){ disabled = true; break; }
+        }
         const btn = document.createElement('button');
-        btn.className='slot';
-        btn.innerHTML = `<span>${label}</span> <span class="text-slate-400 text-xs">bloquea hasta ${minToHm(blockEnd)}</span>`;
-        btn.disabled = conflicts;
-        if(!conflicts){ btn.addEventListener('click', ()=>{ state.slotStart = minToHm(candidateStart); renderSummary(); }); }
-        slotWrap.appendChild(btn);
-      }
-
-      if(!slotWrap.children.length){ slotWrap.innerHTML = '<p class="text-slate-400 text-sm">No hay horarios disponibles con ese paquete. Prueba otro día o paquete.</p>'; }
+        btn.className = 'slot w-full text-left hover:bg-white/5';
+        if(disabled) btn.setAttribute('disabled','');
+        btn.innerHTML = `<div><div class="font-semibold">${t} — ${addMinutes(t, pkg.duration)}</div><div class="text-xs text-slate-400">${state.pkgKey} · ${fmtMoney(pkg.price)}</div></div><div class="text-xs">${disabled? 'Ocupado':'Elegir'}</div>`;
+        btn.addEventListener('click', ()=>{ if(disabled) return; state.slotStart = t; renderSummary(); });
+        frag.appendChild(btn);
+      });
+      slotsWrap.appendChild(frag);
     }
-
-    function renderSlots(){ listSlotsFor(state.dateISO); }
 
     // ====== RESUMEN ======
     const summary = document.getElementById('summary');
     function renderSummary(){
       const pkg = state.pkgKey ? CONFIG.packages[state.pkgKey] : null;
-      const acc = [...state.acc];
-      const parts = [];
-      parts.push(`<div class="text-sm">Paquete: <span class="font-semibold">${state.pkgKey || '—'}</span></div>`);
-      parts.push(`<div class="text-sm">Fecha: <span class="font-semibold">${state.dateISO ? fmtHuman(state.dateISO) : '—'}</span></div>`);
-      parts.push(`<div class="text-sm">Hora: <span class="font-semibold">${state.slotStart || '—'}</span></div>`);
-      parts.push(`<div class="text-sm">Precio: <span class="font-semibold">${pkg ? fmtMoney(pkg.price) : '—'}</span> <span class="text-slate-400">(hora adicional ${fmtMoney(CONFIG.extraHourUSD)})</span></div>`);
-      parts.push(`<div class="text-sm">Accesorios: <span class="font-semibold">${acc.length? acc.join(', ') : 'ninguno'}</span></div>`);
-      summary.innerHTML = parts.join('');
+      const accList = [...state.acc];
+      const dateStr = state.dateISO ? fmtHuman(state.dateISO) : '—';
+      const timeStr = state.slotStart ? `${state.slotStart} — ${state.slotStart && pkg? addMinutes(state.slotStart, pkg.duration):''}` : '—';
+      const subtotal = pkg? pkg.price : 0;
+      summary.innerHTML = `
+        <div class="p-3 rounded-xl border border-white/10">
+          <div class="text-sm text-slate-400">Paquete</div>
+          <div class="font-semibold text-lg">${state.pkgKey || 'Elegí un paquete'}</div>
+          ${pkg? `<div class="text-sm text-slate-400">Duración: ${pkg.duration} min · ${fmtMoney(pkg.price)}</div>`:''}
+        </div>
+        <div class="p-3 rounded-xl border border-white/10">
+          <div class="text-sm text-slate-400">Fecha</div>
+          <div class="font-semibold">${dateStr}</div>
+          <div class="text-sm text-slate-400">Hora: ${timeStr}</div>
+        </div>
+        <div class="p-3 rounded-xl border border-white/10">
+          <div class="text-sm text-slate-400">Accesorios (${accList.length})</div>
+          <div class="text-sm">${accList.length? accList.map(a=>`<span class='tag mr-1'>${a}</span>`).join(' ') : '—'}</div>
+        </div>
+        <div class="p-3 rounded-xl border border-white/10 flex items-center justify-between">
+          <div>
+            <div class="text-sm text-slate-400">Subtotal paquete</div>
+            <div class="font-bold text-xl">${fmtMoney(subtotal)}</div>
+          </div>
+          <div class="text-right text-xs text-slate-400">Se cobrará hora extra a ${fmtMoney(CONFIG.extraHourUSD)}/h si se excede el tiempo.</div>
+        </div>
+      `;
+
+      // WhatsApp: incluir consecutivo si ya existe
+      const lines = [
+        'Solicitud de reserva — B House Music',
+        state.lastBookingId ? `Consecutivo: ${state.lastBookingId}` : null,
+        `Paquete: ${state.pkgKey || '—'}`,
+        `Fecha: ${state.dateISO? fmtHuman(state.dateISO):'—'}`,
+        `Hora: ${timeStr}`,
+        `Accesorios: ${accList.length? accList.join(', '):'Ninguno'}`,
+        `Subtotal: ${fmtMoney(subtotal)}`,
+        '',
+        '¿Me confirmás disponibilidad?'
+      ].filter(Boolean);
+      const baseMsg = encodeURIComponent(lines.join('\n'));
+      const wa = `https://wa.me/${CONFIG.whatsappNumber}?text=${baseMsg}`;
+      document.getElementById('btnWhats').onclick = ()=> window.open(wa,'_blank');
+      document.getElementById('whatsHeader').href = wa;
     }
 
-    // ====== BOOKING ======
-    function selectedReady(){
-      if(!state.pkgKey){ alert('Elegí un paquete.'); return false; }
-      if(!state.dateISO){ alert('Elegí un día en el calendario.'); return false; }
-      if(state.pkgKey!=='Premium' && !state.slotStart){ alert('Elegí una hora.'); return false; }
-      return true;
-    }
-
-    function buildBookingObj(form){
-      const pkg = CONFIG.packages[state.pkgKey];
-      let start = state.slotStart || '10:00';
-      let end;
-      if(state.pkgKey==='Premium'){
-        start = '10:00';
-        end = '18:00';
-      } else {
-        const blockMins = pkg.blockHours*60;
-        end = minToHm(hmToMin(start)+blockMins);
+    // ====== FORM / BOOKING ======
+    const form = document.getElementById('bookForm');
+    const bookMsg = document.getElementById('bookMsg');
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault(); bookMsg.classList.add('hidden');
+      if(!state.pkgKey || !state.dateISO || !state.slotStart){
+        alert('Elegí paquete, fecha y hora primero.'); return;
       }
-      return {
-        id: store.nextId(),
-        date: state.dateISO,
-        start, end,
+
+      const pkg = CONFIG.packages[state.pkgKey];
+      if(state.acc.size > pkg.maxAccessories){
+        alert(`En el paquete ${state.pkgKey} solo se permiten ${pkg.maxAccessories} accesorios.`); return;
+      }
+
+      const payload = {
+        action: 'book',
         pkg: state.pkgKey,
-        acc: [...state.acc],
-        customer: {
-          name: form.name.value.trim(),
-          phone: form.phone.value.trim(),
-          email: form.email.value.trim(),
-          location: form.location.value.trim(),
-          notes: form.notes.value.trim()
-        },
+        date: state.dateISO,
+        start: state.slotStart,
+        end: addMinutes(state.slotStart, pkg.duration),
+        tz: CONFIG.TZ,
+        accessories: [...state.acc],
+        extraHourUSD: CONFIG.extraHourUSD,
+        priceUSD: pkg.price,
+        customer: Object.fromEntries(new FormData(form).entries())
+      };
+
+      // Si hay backend -> delegar y usar ID que devuelva
+      if(CONFIG.api.bookingPOST){
+        try{
+          const res = await fetch(CONFIG.api.bookingPOST, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+          const data = await res.json();
+          if(data.ok){
+            state.lastBookingId = data.id || null;
+            bookMsg.textContent = `✅ Reserva enviada. Consecutivo: ${state.lastBookingId || '(provisto por backend)'}. Pronto te confirmaremos por WhatsApp/Correo.`;
+            bookMsg.classList.remove('hidden');
+            await fetchAvailability();
+            refreshSlots();
+            renderSummary();
+          }else{
+            bookMsg.textContent = 'No se pudo completar la reserva. Intenta por WhatsApp.';
+            bookMsg.classList.remove('hidden');
+          }
+        }catch(err){
+          console.error(err);
+          alert('Error de conexión. Podés confirmar por WhatsApp.');
+        }
+        return;
+      }
+
+      // ===== DEMO LOCAL (sin backend): genera consecutivo y bloquea localmente =====
+      // Validar que no esté ocupado por otra reserva local
+      const busyLocal = store.busyForDate(state.dateISO);
+      const wouldEnd = addMinutes(state.slotStart, pkg.duration);
+      const clash = busyLocal.some(b => overlaps(state.slotStart, wouldEnd, b.start, b.end));
+      if(clash){ alert('Ese horario ya está reservado localmente. Probá otro.'); return; }
+
+      const id = store.nextId();
+      const booking = {
+        id,
+        ...payload,
         createdAt: new Date().toISOString()
       };
-    }
+      store.addBooking(booking);
+      state.lastBookingId = id;
 
-    // Enviar a WhatsApp (pre-fill)
-    function openWhatsAppWith(b){
-      const txt = [
-        `Hola B House 👋`,
-        `Quiero confirmar esta reserva:`,
-        `ID: ${b.id}`,
-        `Paquete: ${b.pkg}`,
-        `Fecha: ${fmtHuman(b.date)}`,
-        `Hora: ${b.start}${b.pkg==='Premium'?' (día completo)':''}`,
-        `Accesorios: ${b.acc.length? b.acc.join(', '):'ninguno'}`,
-        `Nombre: ${b.customer.name}`,
-        `Tel: ${b.customer.phone}`,
-        `Correo: ${b.customer.email}`,
-        b.customer.location? `Lugar: ${b.customer.location}`: '',
-        b.customer.notes? `Notas: ${b.customer.notes}`: ''
-      ].filter(Boolean).join('%0A');
-      const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${txt}`;
-      window.open(url,'_blank');
-    }
-
-    // ====== FORM HANDLERS ======
-    const form = document.getElementById('bookForm');
-    const btnReserve = document.getElementById('btnReserve');
-    const btnWhats = document.getElementById('btnWhats');
-    const btnICS = document.getElementById('btnICS');
-    const bookMsg = document.getElementById('bookMsg');
-
-    form.addEventListener('submit', (e)=> e.preventDefault());
-
-    btnReserve.addEventListener('click', (e)=>{
-      e.preventDefault();
-      if(!selectedReady()) return;
-      if(!document.getElementById('acceptTC').checked){ alert('Debes aceptar los Términos y Condiciones.'); return; }
-      const b = buildBookingObj(form);
-
-      // Guardar
-      store.addBooking(b);
-      state.lastBookingId = b.id;
-      updateBlockedDays();
-      renderCalendar();
-      renderSlots();
-      renderSummary();
-
-      // UX
+      bookMsg.innerHTML = `✅ Reserva preparada (modo demo). <br><strong>Consecutivo:</strong> <code class="px-2 py-1 rounded bg-white/10">${id}</code> <button id="copyId" type="button" class="ml-2 underline">Copiar</button>.<br>Enviá por WhatsApp para confirmar disponibilidad.`;
       bookMsg.classList.remove('hidden');
-      bookMsg.textContent = `✔ Reserva creada. Consecutivo: ${b.id}. Usa ese ID para cancelar.`;
-      // scroll a cancelación para que lo vean
-      document.getElementById('cancelId').value = b.id;
-      document.getElementById('cancelMsg').textContent = '';
-      window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
+      document.getElementById('copyId').onclick = ()=> { navigator.clipboard.writeText(id).then(()=>{ document.getElementById('copyId').textContent = 'Copiado'; setTimeout(()=>document.getElementById('copyId').textContent='Copiar',1200); }); };
+
+      await fetchAvailability();
+      refreshSlots();
+      renderSummary();
     });
 
-    btnWhats.addEventListener('click', ()=>{
-      if(!selectedReady()) return;
-      const fake = buildBookingObj(form); // solo para armar el mensaje
-      openWhatsAppWith(fake);
-    });
-
-    btnICS.addEventListener('click', ()=>{
-      if(!selectedReady()) return;
+    // ====== ICS (añadir a mi calendario) ======
+    function makeICS(){
+      if(!state.pkgKey || !state.dateISO || !state.slotStart) { alert('Elegí paquete, fecha y hora.'); return; }
       const pkg = CONFIG.packages[state.pkgKey];
-      const startHM = state.slotStart || '10:00';
-      const startLocal = `${state.dateISO}T${startHM}:00`;
-      const endHM = (state.pkgKey==='Premium')? '18:00' : minToHm(hmToMin(startHM)+pkg.duration);
-      const endLocal = `${state.dateISO}T${endHM}:00`;
-      const uid = crypto.randomUUID();
-      const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//B House Music//Agenda//ES\nBEGIN:VEVENT\nUID:${uid}\nDTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').replace(/\..+/,'Z')}\nDTSTART:${state.dateISO.replace(/-/g,'')}T${startHM.replace(':','')}00\nDTEND:${state.dateISO.replace(/-/g,'')}T${endHM.replace(':','')}00\nSUMMARY:${state.pkgKey} — B House Music\nDESCRIPTION:Reserva ${state.pkgKey} en B House Music. Accesorios: ${[...state.acc].join(', ')}\nLOCATION:${form.location.value}\nEND:VEVENT\nEND:VCALENDAR`;
+      const start = new Date(state.dateISO + 'T' + state.slotStart + ':00');
+      const end = new Date(state.dateISO + 'T' + addMinutes(state.slotStart, pkg.duration) + ':00');
+      const dt = (d)=> d.toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+      const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//B House//Booking//ES\nBEGIN:VEVENT\nUID:${crypto.randomUUID()}\nDTSTAMP:${dt(new Date())}\nDTSTART:${dt(start)}\nDTEND:${dt(end)}\nSUMMARY:B House — ${state.pkgKey}\nDESCRIPTION:Accesorios: ${[...state.acc].join(', ') || 'Ninguno'}\\nContacto: WhatsApp +${CONFIG.whatsappNumber}\nLOCATION:${(new FormData(form).get('location')||'Por definir')}\nEND:VEVENT\nEND:VCALENDAR`;
       const blob = new Blob([ics], {type:'text/calendar'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `BHM-${state.pkgKey}-${state.dateISO}.ics`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download = `BHouse-${state.pkgKey}-${state.dateISO}.ics`; a.click();
+      setTimeout(()=>URL.revokeObjectURL(url), 1500);
+    }
+    document.getElementById('btnICS').onclick = makeICS;
 
-    // ====== CANCELACIÓN ======
-    const cancelIdInput = document.getElementById('cancelId');
-    const btnLocate = document.getElementById('btnLocate');
-    const btnCancel = document.getElementById('btnCancel');
+    // ====== CANCELACIÓN POR CONSECUTIVO (demo local) ======
+    const cancelInput = document.getElementById('cancelId');
     const cancelMsg = document.getElementById('cancelMsg');
-
-    btnLocate.addEventListener('click', ()=>{
-      const id = cancelIdInput.value.trim();
-      if(!id) { cancelMsg.textContent = 'Ingresá un consecutivo.'; return; }
+    document.getElementById('btnLocate').onclick = ()=>{
+      const id = (cancelInput.value||'').trim();
+      if(!id){ cancelMsg.textContent = 'Ingresá el consecutivo.'; return; }
       const b = store.findById(id);
-      if(!b){ cancelMsg.textContent = 'No se encontró una reserva con ese consecutivo.'; return; }
-      state.viewDate = parseISODate(b.date);
+      if(!b){ cancelMsg.textContent = 'No encontré una reserva con ese consecutivo (en modo demo).'; return; }
+      // Ubicar en calendario
+      const d = parseISODate(b.date);
+      setMonth(d.getFullYear(), d.getMonth());
       state.dateISO = b.date;
-      renderCalendar();
-      // marcar el día seleccionado
-      [...document.querySelectorAll('.day-cell')].forEach(el=>{
-        if(el.textContent.trim().startsWith(String(parseISODate(b.date).getDate()))) el.classList.add('ring-2','ring-sky-400');
+      slotDateLabel.textContent = `· ${fmtHuman(b.date)}`;
+      // resaltar celda
+      const chosen = [...calGrid.querySelectorAll('.day-cell')].find(x=> x.dataset.iso===b.date);
+      document.querySelectorAll('.day-cell').forEach(el=>el.classList.remove('ring-2','ring-sky-400'));
+      if(chosen){ chosen.classList.add('ring-2','ring-sky-400'); }
+      fetchAvailability().then(()=>{
+        refreshSlots();
+        cancelMsg.textContent = `Reserva ${id}: ${b.date} ${b.start}–${b.end} (${b.pkg}).`;
+        document.getElementById('slots').scrollIntoView({behavior:'smooth', block:'start'});
       });
-      renderSlots();
-      cancelMsg.textContent = `Reserva ${b.id}: ${b.pkg} el ${fmtHuman(b.date)} a las ${b.start}.`;
-    });
+    };
 
-    btnCancel.addEventListener('click', ()=>{
-      const id = cancelIdInput.value.trim();
-      if(!id) { cancelMsg.textContent = 'Ingresá un consecutivo.'; return; }
+    document.getElementById('btnCancel').onclick = ()=>{
+      const id = (cancelInput.value||'').trim();
+      if(!id){ cancelMsg.textContent = 'Ingresá el consecutivo.'; return; }
       const removed = store.removeById(id);
-      if(removed){
-        updateBlockedDays();
-        renderCalendar();
-        renderSlots();
-        cancelMsg.textContent = `✔ Reserva ${id} eliminada y horarios liberados.`;
-      } else {
-        cancelMsg.textContent = 'No se encontró una reserva con ese consecutivo.';
+      if(!removed){ cancelMsg.textContent = 'No encontré una reserva con ese consecutivo (en modo demo).'; return; }
+      // Si la reserva cancelada es del día en vista, refrescar disponibilidad
+      if(state.dateISO === removed.date){
+        fetchAvailability().then(refreshSlots);
       }
-    });
+      cancelMsg.textContent = `✅ Reserva ${id} eliminada y horario liberado (${removed.date} ${removed.start}–${removed.end}).`;
+      if(state.lastBookingId === id) state.lastBookingId = null;
+      renderSummary();
+    };
 
-    // ====== MODAL TyC ======
+    // ====== TyC modal ======
     const tcModal = document.getElementById('tcModal');
-    document.getElementById('openTC').addEventListener('click', ()=> tcModal.showModal());
-    document.getElementById('closeTC').addEventListener('click', ()=> tcModal.close());
-
-    // ====== VARIOS ======
-    document.getElementById('yyyy').textContent = new Date().getFullYear();
-    document.getElementById('whatsHeader').href = `https://wa.me/${CONFIG.whatsappNumber}`;
+    document.getElementById('openTC').onclick = ()=> tcModal.showModal();
+    document.getElementById('closeTC').onclick = ()=> tcModal.close();
 
     // ====== INIT ======
-    function fetchAvailability(){ /* sin backend: solo localStorage */ }
-    function boot(){ updateBlockedDays(); renderCalendar(); renderSlots(); renderSummary(); fetchAvailability(); }
+    (function init(){
+      const now = new Date(); setMonth(now.getFullYear(), now.getMonth());
+      renderSummary();
+      refreshAccessoryStates();
+      document.getElementById('yyyy').textContent = new Date().getFullYear();
+      document.title = 'B House | Agenda de Video';
+    })();
 
-    // ====== PAQUETES (listeners al final para asegurar DOM) ======
-    document.querySelectorAll('.selectPkg').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        state.pkgKey = btn.dataset.pkg;
-        // UI paquete activo
-        document.querySelectorAll('[id^="pkg-"]').forEach(c=>c.classList.remove('ring-2','ring-sky-400'));
-        document.getElementById(`pkg-${state.pkgKey}`).classList.add('ring-2','ring-sky-400');
-        // Ajustes accesorios y resumen
-        const pkg = CONFIG.packages[state.pkgKey];
-        if(state.acc.size > pkg.maxAccessories){ state.acc = new Set([...state.acc].slice(0, pkg.maxAccessories)); }
-        document.querySelectorAll('#acc-list input[type="checkbox"]').forEach(chk=>{ const label = chk.getAttribute('data-acc'); chk.checked = state.acc.has(label); });
-        refreshAccessoryStates();
-        // Reiniciar hora seleccionada al cambiar paquete
-        state.slotStart = null;
-        renderSummary();
-        updateBlockedDays();
-        renderCalendar();
-        renderSlots();
-        window.scrollTo({top: 0, behavior:'smooth'});
-      });
-    });
+    // ====== TESTS (consola) ======
+    (function runSelfTests(){
+      const snapshot = { pkgKey: state.pkgKey, acc: new Set([...state.acc]), dateISO: state.dateISO, slotStart: state.slotStart, lastBookingId: state.lastBookingId };
+      const results = [];
+      const assert = (name, cond) => results.push(`${cond? '✅':'❌'} ${name}`);
 
-    boot();
+      // Test 1: Drone bloqueado en Express y ARTISTA
+      const droneChk = [...document.querySelectorAll('#acc-list input[type="checkbox"]')].find(c=>c.getAttribute('data-acc')==='Drone');
+      state.pkgKey = 'Express'; refreshAccessoryStates();
+      assert('Drone deshabilitado en Express', !!droneChk && droneChk.disabled === true);
+      state.pkgKey = 'ARTISTA'; refreshAccessoryStates();
+      assert('Drone deshabilitado en ARTISTA', !!droneChk && droneChk.disabled === true);
+
+      // Test 2: WhatsApp link se genera
+      state.pkgKey = 'Express'; state.dateISO = toISODate(new Date()); state.slotStart = '10:00'; renderSummary();
+      assert('WhatsApp link generado', !!document.getElementById('whatsHeader').href);
+
+      console.log('Pruebas B House →', ...results);
+
+      // restore snapshot
+      state.pkgKey = snapshot.pkgKey; state.acc = snapshot.acc; state.dateISO = snapshot.dateISO; state.slotStart = snapshot.slotStart; state.lastBookingId = snapshot.lastBookingId; renderSummary();
+    })();
   </script>
 </body>
 </html>
