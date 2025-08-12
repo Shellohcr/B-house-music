@@ -110,22 +110,43 @@
   <!-- Paneles (uno por paquete). Por defecto ocultos con hidden -->
   <div id="gc-artista" class="gc-pane" hidden>
     <!-- Google Calendar Appointment Scheduling begin -->
-    <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ3H_MANsRvT42Xqp8cu0_iT1nHI4m6dv5MLOiyydYtuKXYtxhlYykAS8fGYz6yaIV8XToGC04nQ?gv=true"
-            style="border:0" width="100%" height="600" frameborder="0"></iframe>
+<div class="gc-frame-wrap">
+  <iframe data-src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ3H_MANsRvT42Xqp8cu0_iT1nHI4m6dv5MLOiyydYtuKXYtxhlYykAS8fGYz6yaIV8XToGC04nQ?gv=true"
+          title="Agenda ARTISTA" style="border:0" width="100%" height="620" frameborder="0"></iframe>
+  <div class="gc-fallback hidden p-4 mt-3 rounded-xl border border-white/10 bg-white/5">
+    No se pudo mostrar el calendario aquí. 
+    <a class="underline" target="_blank" href="https://calendar.google.com/calendar/appointments/schedules/AcZssZ3H_MANsRvT42Xqp8cu0_iT1nHI4m6dv5MLOiyydYtuKXYtxhlYykAS8fGYz6yaIV8XToGC04nQ?gv=true">Abrir agenda ARTISTA en una pestaña nueva</a>.
+  </div>
+</div>
+
     <!-- end Google Calendar Appointment Scheduling -->
   </div>
 
   <div id="gc-express" class="gc-pane" hidden>
     <!-- Google Calendar Appointment Scheduling begin -->
-    <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ3g9-jnvbklnIaDU9Tmi0-ErhTPLRNXwCg8LCB0eujp7S1V8kNV17aCz_bcgkrtXw1aItRvEmTQ?gv=true"
-            style="border:0" width="100%" height="600" frameborder="0"></iframe>
+<div class="gc-frame-wrap">
+  <iframe data-src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ3g9-jnvbklnIaDU9Tmi0-ErhTPLRNXwCg8LCB0eujp7S1V8kNV17aCz_bcgkrtXw1aItRvEmTQ?gv=true"
+          title="Agenda Express" style="border:0" width="100%" height="620" frameborder="0"></iframe>
+  <div class="gc-fallback hidden p-4 mt-3 rounded-xl border border-white/10 bg-white/5">
+    No se pudo mostrar el calendario aquí. 
+    <a class="underline" target="_blank" href="https://calendar.google.com/calendar/appointments/schedules/AcZssZ3g9-jnvbklnIaDU9Tmi0-ErhTPLRNXwCg8LCB0eujp7S1V8kNV17aCz_bcgkrtXw1aItRvEmTQ?gv=true">Abrir agenda Express en una pestaña nueva</a>.
+  </div>
+</div>
+
     <!-- end Google Calendar Appointment Scheduling -->
   </div>
 
   <div id="gc-premium" class="gc-pane" hidden>
     <!-- Google Calendar Appointment Scheduling begin -->
-    <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ1tQtWbDLpG67VoRU7guqmwV2NxL24uPRnrteJ0ye7mPeliJ1BrWaZWShYGEIjkQ23SC7G9oV4i?gv=true"
-            style="border:0" width="100%" height="600" frameborder="0"></iframe>
+   <div class="gc-frame-wrap">
+  <iframe data-src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ1tQtWbDLpG67VoRU7guqmwV2NxL24uPRnrteJ0ye7mPeliJ1BrWaZWShYGEIjkQ23SC7G9oV4i?gv=true"
+          title="Agenda Premium" style="border:0" width="100%" height="620" frameborder="0"></iframe>
+  <div class="gc-fallback hidden p-4 mt-3 rounded-xl border border-white/10 bg-white/5">
+    No se pudo mostrar el calendario aquí. 
+    <a class="underline" target="_blank" href="https://calendar.google.com/calendar/appointments/schedules/AcZssZ1tQtWbDLpG67VoRU7guqmwV2NxL24uPRnrteJ0ye7mPeliJ1BrWaZWShYGEIjkQ23SC7G9oV4i?gv=true">Abrir agenda Premium en una pestaña nueva</a>.
+  </div>
+</div>
+
     <!-- end Google Calendar Appointment Scheduling -->
   </div>
 
@@ -384,6 +405,7 @@
         fetchAvailability();
         refreshSlots();
         openGCalFor(state.pkgKey);
+ensureGCal({ 'ARTISTA':'artista', 'Express':'express', 'Premium':'premium' }[state.pkgKey] || 'express');
 
 
       });
@@ -767,11 +789,13 @@ form.addEventListener('submit', async (e) => {
 // ====== GOOGLE CALENDAR TABS ======
 function setGCTab(tab) {
   const ids = ['artista','express','premium'];
+
   // ocultar todos
   ids.forEach(id => {
     const pane = document.getElementById('gc-' + id);
     if (pane) pane.setAttribute('hidden', '');
   });
+
   // mostrar el seleccionado
   const current = document.getElementById('gc-' + tab);
   if (current) current.removeAttribute('hidden');
@@ -783,9 +807,36 @@ function setGCTab(tab) {
     btn.classList.toggle('ring-sky-400', active);
     btn.classList.toggle('bg-white/10', active);
   });
+
+  // cargar el iframe y manejar fallback
+  ensureGCal(tab);
 }
 
-// abre el tab correcto según el paquete
+// carga diferida del iframe y muestra fallback si el embed está bloqueado
+function ensureGCal(tab) {
+  const pane = document.getElementById('gc-' + tab);
+  if (!pane) return;
+
+  const iframe = pane.querySelector('iframe');
+  const fb = pane.querySelector('.gc-fallback');
+  if (!iframe || iframe.src) return; // ya cargado
+
+  let loaded = false;
+  iframe.addEventListener('load', () => {
+    loaded = true;
+    if (fb) fb.classList.add('hidden');
+  }, { once: true });
+
+  // asigna el src real (lazy)
+  iframe.src = iframe.dataset.src;
+
+  // si en ~2.5s no cargó, mostrar fallback
+  setTimeout(() => {
+    if (!loaded && fb) fb.classList.remove('hidden');
+  }, 2500);
+}
+
+// abre el tab correcto según el paquete y hace scroll a la sección
 function openGCalFor(pkgKey) {
   const map = { 'ARTISTA':'artista', 'Express':'express', 'Premium':'premium' };
   const tab = map[pkgKey] || 'express';
@@ -799,6 +850,8 @@ document.addEventListener('click', (e) => {
   const btn = e.target.closest('.gc-tab');
   if (!btn) return;
   setGCTab(btn.dataset.gc);
+});
+
 });
 
     // ====== INIT ======
