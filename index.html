@@ -48,7 +48,7 @@
         <div class="space-y-1">
           <p class="text-slate-200 text-sm">Disponibilidad: <span class="font-semibold">Sábados y Domingos</span> · <span class="font-semibold">10:00 a. m.</span> a <span class="font-semibold">6:00 p. m.</span></p>
           <p class="text-slate-400 text-xs">Última hora permitida = que la sesión termine a más tardar 6:00 p. m. (se calcula según el paquete). Extra: $200/h si se excede.
-            Cámara incluida (no aparece en accesorios). En paquete Express máximo 2 accesorios.</p>
+            Cámara incluida (no aparece en accesorios). En paquete Express máximo 2 accesorios. <strong>Drone no disponible en Express ni en ARTISTA.</strong></p>
         </div>
         <div class="flex gap-2 text-xs text-slate-300">
           <span class="kbd">? Paquete</span>
@@ -66,25 +66,25 @@
           <h2 class="text-lg font-bold">Express</h2>
           <span class="tag">60 min</span>
         </div>
-        <p class="text-2xl font-extrabold">$100</p>
-        <p class="text-slate-400 text-sm mb-4">Buffer de 2 h después. Incluye cámara. Máximo 2 accesorios.</p>
+        <p class="text-2xl font-extrabold">$200</p>
+        <p class="text-slate-400 text-sm mb-4">Buffer de 2 h después. Incluye cámara. Máximo 2 accesorios. <strong>Sin Drone.</strong></p>
         <button data-pkg="Express" class="selectPkg w-full mt-2 px-4 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40">Elegir Express</button>
       </div>
-      <div class="glass rounded-2xl p-5" id="pkg-DosHoras">
+      <div class="glass rounded-2xl p-5" id="pkg-ARTISTA">
         <div class="flex items-center justify-between mb-1">
-          <h2 class="text-lg font-bold">Dos horas</h2>
-          <span class="tag">120 min</span>
+          <h2 class="text-lg font-bold">ARTISTA</h2>
+          <span class="tag">180 min</span>
         </div>
-        <p class="text-2xl font-extrabold">$150</p>
-        <p class="text-slate-400 text-sm mb-4">Incluye cámara. Accesorios a elección.</p>
-        <button data-pkg="DosHoras" class="selectPkg w-full mt-2 px-4 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40">Elegir 2 horas</button>
+        <p class="text-2xl font-extrabold">$450</p>
+        <p class="text-slate-400 text-sm mb-4">Incluye cámara. Hasta 5 accesorios. <strong>Sin Drone.</strong></p>
+        <button data-pkg="ARTISTA" class="selectPkg w-full mt-2 px-4 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40">Elegir ARTISTA</button>
       </div>
       <div class="glass rounded-2xl p-5" id="pkg-Premium">
         <div class="flex items-center justify-between mb-1">
           <h2 class="text-lg font-bold">Premium</h2>
           <span class="tag">240 min</span>
         </div>
-        <p class="text-2xl font-extrabold">$300</p>
+        <p class="text-2xl font-extrabold">$900</p>
         <p class="text-slate-400 text-sm mb-4">Paquete completo. Accesorios a elección.</p>
         <button data-pkg="Premium" class="selectPkg w-full mt-2 px-4 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40">Elegir Premium</button>
       </div>
@@ -93,7 +93,7 @@
     <!-- Accesorios -->
     <section class="glass rounded-2xl p-5 mb-8">
       <h3 class="font-semibold mb-2">Accesorios (opcional)</h3>
-      <p class="text-slate-400 text-sm mb-4">La cámara SIEMPRE va incluida. Marca solo lo que necesitas adicional. En Express se permite máximo 2 accesorios.</p>
+      <p class="text-slate-400 text-sm mb-4">La cámara SIEMPRE va incluida. Marca solo lo que necesitas adicional. En Express se permite máximo 2 accesorios. Drone no disponible en Express ni en ARTISTA.</p>
       <div id="acc-list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-2"></div>
     </section>
 
@@ -176,8 +176,8 @@
         </div>
         <ol class="list-decimal list-inside text-sm text-slate-300 space-y-2">
           <li>Agenda disponible <strong>únicamente</strong> sábados y domingos entre <strong>10:00 a. m.</strong> y <strong>6:00 p. m.</strong> La última hora disponible dependerá del paquete elegido.</li>
-          <li>Paquetes y precios (USD): Express $100 (60 min), Dos horas $150 (120 min), Premium $300 (240 min). Hora adicional: $200.</li>
-          <li>Paquete Express permite <strong>máximo 2</strong> accesorios. La cámara está incluida en todos los paquetes.</li>
+          <li>Paquetes y precios (USD): Express $200 (60 min), ARTISTA $450 (180 min), Premium $900 (240 min). Hora adicional: $200.</li>
+          <li>Paquete Express permite <strong>máximo 2</strong> accesorios. <strong>Drone no disponible en Express ni en ARTISTA.</strong> La cámara está incluida en todos los paquetes.</li>
           <li>Si se excede el tiempo del paquete, se facturará la hora adicional indicada. La fracción superior a 15 minutos cuenta como hora completa.</li>
           <li>Reprogramaciones: con mínimo 48 h de anticipación. El mismo día no se reprograma salvo fuerza mayor.</li>
           <li>Al reservar se solicita confirmación por WhatsApp. La fecha no se garantiza sin confirmación.</li>
@@ -202,14 +202,16 @@
       stepMinutes: 30,    // intervalos para mostrar slots
       whatsappNumber: '50670166631',
       api: {
-        // reemplaza estos endpoints si conectas Google Apps Script o tu backend
-        availabilityGET: null, // e.g. 'https://script.google.com/macros/s/XXXX/exec?action=availability&date=YYYY-MM-DD'
-        bookingPOST: null      // e.g. 'https://script.google.com/macros/s/XXXX/exec' (POST)
+        // Reemplaza con tus Apps Script/Backend para bloqueo real
+        // availabilityGET debe responder: { ok:true, busy:[{start:'HH:MM', end:'HH:MM'}] }
+        // bookingPOST debe aceptar el payload y devolver { ok:true }
+        availabilityGET: null, // 'https://script.google.com/macros/s/XXXX/exec?action=availability&date=YYYY-MM-DD'
+        bookingPOST: null      // 'https://script.google.com/macros/s/XXXX/exec'
       },
       packages: {
-        Express:  { price: 100, duration: 60,  bufferAfter: 120, maxAccessories: 2 },
-        DosHoras: { price: 150, duration: 120, bufferAfter: 0,   maxAccessories: 999 },
-        Premium:  { price: 300, duration: 240, bufferAfter: 0,   maxAccessories: 999 }
+        Express:  { price: 200, duration: 60,  bufferAfter: 120, maxAccessories: 2,   banned:['Drone'] },
+        ARTISTA:  { price: 450, duration: 180, bufferAfter: 0,   maxAccessories: 5,   banned:['Drone'] },
+        Premium:  { price: 900, duration: 240, bufferAfter: 0,   maxAccessories: 999, banned:[] }
       },
       extraHourUSD: 200,
       accessories: [
@@ -223,6 +225,8 @@
       acc: new Set(),
       dateISO: null, // YYYY-MM-DD
       slotStart: null, // 'HH:MM'
+      dayBusy: [], // [{start,end}] desde backend
+      reservedSlots: new Set() // Para bloquear slots ya reservados localmente
     };
 
     // ====== UTILS ======
@@ -239,28 +243,82 @@
       const d = new Date(); d.setHours(H, M, 0, 0); d.setMinutes(d.getMinutes()+mins);
       return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
+    const overlaps = (aStart, aEnd, bStart, bEnd) => !(aEnd <= bStart || aStart >= bEnd);
 
     // ====== ACCESSORIOS RENDER ======
     const accWrap = document.getElementById('acc-list');
-    CONFIG.accessories.forEach((label, idx)=>{
-      const id = `acc-${idx}`;
+    CONFIG.accessories.forEach((label)=>{
       const el = document.createElement('label');
       el.className = 'flex items-center gap-2 p-2 rounded-xl border border-white/10 hover:bg-white/5';
       el.innerHTML = `<input type="checkbox" class="h-4 w-4" data-acc="${label}"> <span>${label}</span>`;
       accWrap.appendChild(el);
     });
 
+    function refreshAccessoryStates(){
+      const pkg = state.pkgKey ? CONFIG.packages[state.pkgKey] : null;
+      document.querySelectorAll('#acc-list input[type="checkbox"]').forEach(chk=>{
+        const label = chk.getAttribute('data-acc');
+        const banned = pkg && pkg.banned.includes(label);
+        
+        // Limpiar estados temporales
+        chk.removeAttribute('data-temp-disabled');
+        
+        // Aplicar reglas de banned (Drone para Express y ARTISTA)
+        chk.disabled = !!banned;
+        if(banned){ 
+          chk.checked = false; 
+          state.acc.delete(label); 
+        }
+      });
+      
+      // Aplicar límite de accesorios después de limpiar banned
+      if(pkg && state.acc.size >= pkg.maxAccessories){
+        document.querySelectorAll('#acc-list input[type="checkbox"]:not(:checked)').forEach(uncheckedBox=>{
+          if(!uncheckedBox.disabled){
+            uncheckedBox.disabled = true;
+            uncheckedBox.setAttribute('data-temp-disabled', 'true');
+          }
+        });
+      }
+    }
+
     accWrap.addEventListener('change', (e)=>{
       if(!e.target.matches('input[type="checkbox"]')) return;
       const label = e.target.getAttribute('data-acc');
-      if(e.target.checked){ state.acc.add(label); } else { state.acc.delete(label); }
-      // Enforce Express max 2
-      if(state.pkgKey === 'Express'){
-        if(state.acc.size > CONFIG.packages.Express.maxAccessories){
-          e.target.checked = false; state.acc.delete(label);
-          alert('En paquete Express solo se permiten 2 accesorios.');
+      const pkg = state.pkgKey ? CONFIG.packages[state.pkgKey] : null;
+      
+      if(e.target.checked){
+        // Verificar límite ANTES de añadir
+        if(pkg && state.acc.size >= pkg.maxAccessories){
+          e.target.checked = false;
+          alert(`En el paquete ${state.pkgKey} solo se permiten ${pkg.maxAccessories} accesorios.`);
+          return;
         }
+        state.acc.add(label);
+      } else {
+        state.acc.delete(label);
       }
+      
+      // Actualizar estado de otros checkboxes si se alcanzó el límite
+      if(pkg && state.acc.size >= pkg.maxAccessories){
+        document.querySelectorAll('#acc-list input[type="checkbox"]:not(:checked)').forEach(uncheckedBox=>{
+          if(!uncheckedBox.disabled){
+            uncheckedBox.disabled = true;
+            uncheckedBox.setAttribute('data-temp-disabled', 'true');
+          }
+        });
+      } else {
+        // Re-habilitar checkboxes temporalmente deshabilitados
+        document.querySelectorAll('#acc-list input[data-temp-disabled]').forEach(tempBox=>{
+          const tempLabel = tempBox.getAttribute('data-acc');
+          const isBanned = pkg && pkg.banned.includes(tempLabel);
+          if(!isBanned){
+            tempBox.disabled = false;
+            tempBox.removeAttribute('data-temp-disabled');
+          }
+        });
+      }
+      
       renderSummary();
     });
 
@@ -270,16 +328,19 @@
         state.pkgKey = btn.dataset.pkg;
         document.querySelectorAll('[id^="pkg-"]').forEach(c=>c.classList.remove('ring-2','ring-sky-400'));
         document.getElementById(`pkg-${state.pkgKey}`).classList.add('ring-2','ring-sky-400');
-        // validar accesorios si Express
-        if(state.pkgKey==='Express' && state.acc.size>CONFIG.packages.Express.maxAccessories){
-          state.acc = new Set([...state.acc].slice(0, CONFIG.packages.Express.maxAccessories));
-          // sync checkboxes
-          document.querySelectorAll('#acc-list input[type="checkbox"]').forEach(chk=>{
-            const label = chk.getAttribute('data-acc');
-            chk.checked = state.acc.has(label);
-          });
+        // Limitar accesorios según paquete y recortar si excede
+        const pkg = CONFIG.packages[state.pkgKey];
+        if(state.acc.size > pkg.maxAccessories){
+          state.acc = new Set([...state.acc].slice(0, pkg.maxAccessories));
         }
+        // Sync checkboxes + ban Drone según paquete
+        document.querySelectorAll('#acc-list input[type="checkbox"]').forEach(chk=>{
+          const label = chk.getAttribute('data-acc');
+          chk.checked = state.acc.has(label);
+        });
+        refreshAccessoryStates();
         renderSummary();
+        fetchAvailability();
         refreshSlots();
         window.scrollTo({top: document.body.scrollHeight/4, behavior:'smooth'});
       });
@@ -298,15 +359,11 @@
       const last = new Date(viewYear, viewMonth+1, 0);
       calTitle.textContent = `${first.toLocaleString('es-CR',{month:'long'})} ${viewYear}`;
 
-      // compute offset (we start week on Monday)
       let startIdx = (first.getDay() + 6) % 7; // 0=Mon
       const cells = [];
-      // prev month padding
       const prevLast = new Date(viewYear, viewMonth, 0).getDate();
       for(let i=startIdx-1;i>=0;i--){ cells.push({day: prevLast - i, other:true}); }
-      // current month
       for(let d=1; d<=last.getDate(); d++){ cells.push({day:d, other:false}); }
-      // next padding to fill weeks
       while(cells.length % 7 !== 0){ cells.push({day: cells.length, other:true}); }
 
       calGrid.innerHTML = '';
@@ -322,10 +379,10 @@
         cell.innerHTML = `<div class="text-sm">${c.day}</div><div class="text-right text-[10px] text-slate-400">${isWeekend && isCurrentMonth ? 'Disponible' : ''}</div>`;
         cell.addEventListener('click', ()=>{
           if(disabled) return;
-          state.dateISO = iso; refreshSlots();
+          state.dateISO = iso; slotDateLabel.textContent = `· ${fmtHuman(iso)}`;
           document.querySelectorAll('.day-cell').forEach(el=>el.classList.remove('ring-2','ring-sky-400'));
           cell.classList.add('ring-2','ring-sky-400');
-          slotDateLabel.textContent = `· ${fmtHuman(iso)}`;
+          fetchAvailability().then(refreshSlots);
         });
         calGrid.appendChild(cell);
       });
@@ -337,6 +394,20 @@
     document.getElementById('nextMonth').onclick = ()=>{
       const d = new Date(viewYear, viewMonth+1, 1); setMonth(d.getFullYear(), d.getMonth());
     };
+
+    // ====== DISPONIBILIDAD (BACKEND) ======
+    async function fetchAvailability(){
+      state.dayBusy = [];
+      if(!state.dateISO || !CONFIG.api.availabilityGET) return;
+      try{
+        const url = `${CONFIG.api.availabilityGET}?date=${encodeURIComponent(state.dateISO)}` + (state.pkgKey? `&pkg=${encodeURIComponent(state.pkgKey)}`:'');
+        const res = await fetch(url);
+        const data = await res.json();
+        if(data && data.ok && Array.isArray(data.busy)){
+          state.dayBusy = data.busy; // [{start,end}]
+        }
+      }catch(err){ console.warn('No availability backend:', err); }
+    }
 
     // ====== SLOTS ======
     const slotsWrap = document.getElementById('slots');
@@ -359,23 +430,35 @@
         }
       }
 
-      // TODO: if CONFIG.api.availabilityGET -> fetch busy slots and filter
-      // For now, only rule-based availability and bufferAfter for Express
-
       const frag = document.createDocumentFragment();
       times.forEach(t=>{
         let disabled = false;
-        // If Express bufferAfter blocks next slots within 120 min from end
-        if(state.pkgKey==='Express'){
+        const slotKey = `${state.dateISO}_${t}`;
+        
+        // Verificar si el slot ya fue reservado localmente
+        if(state.reservedSlots.has(slotKey)){
+          disabled = true;
+        }
+        
+        // Regla: Express con buffer de 2h después no puede pasar del cierre
+        if(state.pkgKey==='Express' && !disabled){
           const endTime = addMinutes(t, pkg.duration);
           const bufferEnd = addMinutes(endTime, pkg.bufferAfter);
-          // We don't know the next reservations yet (no backend), so we only ensure we don't overflow closing time with buffer
           if(bufferEnd > `${pad(end)}:00`) disabled = true;
         }
+        // Bloqueos traídos del backend
+        if(!disabled){
+          for(const b of state.dayBusy){
+            const tEnd = addMinutes(t, pkg.duration);
+            if(overlaps(t, tEnd, b.start, b.end)){ disabled = true; break; }
+          }
+        }
+        
         const btn = document.createElement('button');
         btn.className = 'slot w-full text-left hover:bg-white/5';
         if(disabled) btn.setAttribute('disabled','');
-        btn.innerHTML = `<div><div class="font-semibold">${t} — ${addMinutes(t, pkg.duration)}</div><div class="text-xs text-slate-400">${state.pkgKey} · ${fmtMoney(pkg.price)}</div></div><div class="text-xs">Elegir</div>`;
+        const statusText = disabled ? (state.reservedSlots.has(slotKey) ? 'Reservado' : 'Ocupado') : 'Elegir';
+        btn.innerHTML = `<div><div class="font-semibold">${t} — ${addMinutes(t, pkg.duration)}</div><div class="text-xs text-slate-400">${state.pkgKey} · ${fmtMoney(pkg.price)}</div></div><div class="text-xs">${statusText}</div>`;
         btn.addEventListener('click', ()=>{ if(disabled) return; state.slotStart = t; renderSummary(); });
         frag.appendChild(btn);
       });
@@ -414,7 +497,7 @@
         </div>
       `;
 
-      // build WhatsApp links
+      // build WhatsApp links (usar salto de línea escapado para evitar SyntaxError)
       const baseMsg = encodeURIComponent([
         'Solicitud de reserva — B House Music',
         `Paquete: ${state.pkgKey || '—'}`,
@@ -437,12 +520,13 @@
       e.preventDefault(); bookMsg.classList.add('hidden');
       if(!state.pkgKey || !state.dateISO || !state.slotStart){
         alert('Elegí paquete, fecha y hora primero.'); return;
-      }
-      if(CONFIG.packages[state.pkgKey] && state.pkgKey==='Express' && state.acc.size>CONFIG.packages.Express.maxAccessories){
-        alert('Express permite máximo 2 accesorios.'); return;
-      }
+        }
 
       const pkg = CONFIG.packages[state.pkgKey];
+      if(state.acc.size > pkg.maxAccessories){
+        alert(`En el paquete ${state.pkgKey} solo se permiten ${pkg.maxAccessories} accesorios.`); return;
+      }
+
       const payload = {
         action: 'book',
         pkg: state.pkgKey,
@@ -457,9 +541,15 @@
       };
 
       if(!CONFIG.api.bookingPOST){
-        // Modo demo sin backend
+        // Modo demo sin backend — bloquea localmente el slot reservado
+        const slotKey = `${state.dateISO}_${state.slotStart}`;
+        state.reservedSlots.add(slotKey);
+        
         bookMsg.textContent = '✅ Reserva preparada. Envía por WhatsApp para confirmar la disponibilidad.';
         bookMsg.classList.remove('hidden');
+        
+        // Actualizar slots para mostrar el bloqueo
+        refreshSlots();
         return;
       }
 
@@ -468,6 +558,11 @@
         const data = await res.json();
         if(data.ok){
           bookMsg.textContent = '✅ Reserva enviada. Pronto te confirmaremos por WhatsApp/Correo.';
+          // Bloquear slot localmente también cuando hay backend
+          const slotKey = `${state.dateISO}_${state.slotStart}`;
+          state.reservedSlots.add(slotKey);
+          await fetchAvailability();
+          refreshSlots();
         }else{
           bookMsg.textContent = 'No se pudo completar la reserva. Intenta por WhatsApp.';
         }
@@ -502,8 +597,38 @@
     (function init(){
       const now = new Date(); setMonth(now.getFullYear(), now.getMonth());
       renderSummary();
+      refreshAccessoryStates();
       document.getElementById('yyyy').textContent = new Date().getFullYear();
       document.title = 'B House | Agenda de Video';
+    })();
+
+    // ====== TESTS (consola) ======
+    (function runSelfTests(){
+      const snapshot = { pkgKey: state.pkgKey, acc: new Set([...state.acc]), dateISO: state.dateISO, slotStart: state.slotStart };
+      const results = [];
+      const assert = (name, cond) => results.push(`${cond? '✅':'❌'} ${name}`);
+
+      // Test 1: Express máximo 2 accesorios
+      state.pkgKey = 'Express'; refreshAccessoryStates();
+      state.acc = new Set(['Estabilizador (gimbal)','Kit de luces','Trípode']);
+      const expressOk = state.acc.size <= CONFIG.packages.Express.maxAccessories;
+      assert('Express: máximo 2 accesorios', expressOk);
+
+      // Test 2: Drone bloqueado en Express y ARTISTA
+      const droneChk = [...document.querySelectorAll('#acc-list input[type="checkbox"]')].find(c=>c.getAttribute('data-acc')==='Drone');
+      state.pkgKey = 'Express'; refreshAccessoryStates();
+      assert('Drone deshabilitado en Express', !!droneChk && droneChk.disabled === true);
+      state.pkgKey = 'ARTISTA'; refreshAccessoryStates();
+      assert('Drone deshabilitado en ARTISTA', !!droneChk && droneChk.disabled === true);
+
+      // Test 3: WhatsApp link se genera sin error
+      state.pkgKey = 'Express'; state.dateISO = toISODate(new Date()); state.slotStart = '10:00'; renderSummary();
+      assert('WhatsApp link generado', !!document.getElementById('whatsHeader').href);
+
+      console.log('Pruebas B House →', ...results);
+
+      // restore snapshot
+      state.pkgKey = snapshot.pkgKey; state.acc = snapshot.acc; state.dateISO = snapshot.dateISO; state.slotStart = snapshot.slotStart; renderSummary();
     })();
   </script>
 </body>
