@@ -247,13 +247,13 @@
 
     // ====== UTILS ======
     const pad = n => String(n).padStart(2,'0');
-    const fmtMoney = v => $${v.toLocaleString('en-US', {minimumFractionDigits:0})};
-    const toISODate = d => ${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())};
+    const fmtMoney = v => `$${v.toLocaleString('en-US', {minimumFractionDigits:0})}`;
+    const toISODate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     const parseISODate = (iso) => { const [y,m,da]=iso.split('-').map(Number); return new Date(y, m-1, da); };
     const fmtHuman = (iso) => { const d = parseISODate(iso); return d.toLocaleDateString('es-CR', { weekday:'long', day:'2-digit', month:'long' }); };
-    const addMinutes = (timeStr, mins) => { const [H,M] = timeStr.split(':').map(Number); const d = new Date(); d.setHours(H, M, 0, 0); d.setMinutes(d.getMinutes()+mins); return ${pad(d.getHours())}:${pad(d.getMinutes())}; };
+    const addMinutes = (timeStr, mins) => { const [H,M] = timeStr.split(':').map(Number); const d = new Date(); d.setHours(H, M, 0, 0); d.setMinutes(d.getMinutes()+mins); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
     const timeToMin = (t) => { const [H,M] = t.split(':').map(Number); return H*60+M; };
-    const minToTime = (m) => ${pad(Math.floor(m/60))}:${pad(m%60)};
+    const minToTime = (m) => `${pad(Math.floor(m/60))}:${pad(m%60)}`;
     const overlaps = (aStart, aEnd, bStart, bEnd) => { const A1=timeToMin(aStart), A2=timeToMin(aEnd), B1=timeToMin(bStart), B2=timeToMin(bEnd); return !(A2 <= B1 || A1 >= B2); };
 
     // ====== STORAGE (demo sin backend) ======
@@ -267,7 +267,7 @@
         const k = this.seqKey(ymd);
         const next = (parseInt(localStorage.getItem(k)||'0',10) || 0) + 1;
         localStorage.setItem(k, String(next));
-        return BHM-${ymd}-${String(next).padStart(4,'0')};
+        return `BHM-${ymd}-${String(next).padStart(4,'0')}`;
       },
       add(b){ const arr = this.load(); arr.push(b); this.save(arr); },
       removeById(id){ const arr = this.load(); const norm = s => (s||'').trim().toUpperCase(); const idx = arr.findIndex(x=> norm(x.id)===norm(id)); if(idx>=0){ const [rm]=arr.splice(idx,1); this.save(arr); return rm; } return null; },
@@ -299,7 +299,7 @@
     CONFIG.accessories.forEach((label)=>{
       const el = document.createElement('label');
       el.className = 'flex items-center gap-2 p-2 rounded-xl border border-white/10 hover:bg-white/5';
-      el.innerHTML = <input type="checkbox" class="h-4 w-4" data-acc="${label}"> <span>${label}</span>;
+      el.innerHTML = `<input type="checkbox" class="h-4 w-4" data-acc="${label}"> <span>${label}</span>`;
       accWrap.appendChild(el);
     });
 
@@ -322,7 +322,7 @@
         const allowed = pkg.maxAccessories;
         if(state.acc.size > allowed){
           e.target.checked = false; state.acc.delete(label);
-          alert(En el paquete ${state.pkgKey} solo se permiten ${allowed} accesorios.);
+          alert(`En el paquete ${state.pkgKey} solo se permiten ${allowed} accesorios.`);
         }
       }
       renderSummary();
@@ -333,7 +333,7 @@
       btn.addEventListener('click', ()=>{
         state.pkgKey = btn.dataset.pkg;
         document.querySelectorAll('[id^="pkg-"]').forEach(c=>c.classList.remove('ring-2','ring-sky-400'));
-        document.getElementById(pkg-${state.pkgKey}).classList.add('ring-2','ring-sky-400');
+        document.getElementById(`pkg-${state.pkgKey}`).classList.add('ring-2','ring-sky-400');
         const pkg = CONFIG.packages[state.pkgKey];
         if(state.acc.size > pkg.maxAccessories){
           state.acc = new Set([...state.acc].slice(0, pkg.maxAccessories));
@@ -361,7 +361,7 @@
     function renderCalendar(){
       const first = new Date(viewYear, viewMonth, 1);
       const last = new Date(viewYear, viewMonth+1, 0);
-      calTitle.textContent = ${first.toLocaleString('es-CR',{month:'long'})} ${viewYear};
+      calTitle.textContent = `${first.toLocaleString('es-CR',{month:'long'})} ${viewYear}`;
 
       let startIdx = (first.getDay() + 6) % 7; // 0=Mon
       const cells = [];
@@ -379,12 +379,12 @@
         const isCurrentMonth = date.getMonth()===viewMonth;
         const disabled = !isCurrentMonth || !isWeekend || date < new Date(new Date().toDateString());
         const cell = document.createElement('button');
-        cell.className = day-cell ${disabled? 'day-disabled':''};
+        cell.className = `day-cell ${disabled? 'day-disabled':''}`;
         cell.dataset.iso = iso; // para ubicar por ID
-        cell.innerHTML = <div class="text-sm">${c.day}</div><div class="text-right text-[10px] text-slate-400">${isWeekend && isCurrentMonth ? 'Disponible' : ''}</div>;
+        cell.innerHTML = `<div class="text-sm">${c.day}</div><div class="text-right text-[10px] text-slate-400">${isWeekend && isCurrentMonth ? 'Disponible' : ''}</div>`;
         cell.addEventListener('click', ()=>{
           if(disabled) return;
-          state.dateISO = iso; slotDateLabel.textContent = · ${fmtHuman(iso)};
+          state.dateISO = iso; slotDateLabel.textContent = `· ${fmtHuman(iso)}`;
           document.querySelectorAll('.day-cell').forEach(el=>el.classList.remove('ring-2','ring-sky-400'));
           cell.classList.add('ring-2','ring-sky-400');
           fetchAvailability().then(refreshSlots);
@@ -408,7 +408,7 @@
 
       if(CONFIG.api.availabilityGET){
         try{
-          const url = ${CONFIG.api.availabilityGET}?date=${encodeURIComponent(state.dateISO)} + (state.pkgKey? &pkg=${encodeURIComponent(state.pkgKey)}:'');
+          const url = `${CONFIG.api.availabilityGET}?date=${encodeURIComponent(state.dateISO)}` + (state.pkgKey? `&pkg=${encodeURIComponent(state.pkgKey)}`:'');
           const res = await fetch(url);
           const data = await res.json();
           if(data && data.ok && Array.isArray(data.busy)){
@@ -428,15 +428,15 @@
       const btn = document.createElement('button');
       btn.className = 'slot w-full text-left hover:bg-white/5';
       if(disabled) btn.setAttribute('disabled','');
-      btn.innerHTML = <div><div class="font-semibold">${labelLeft}</div><div class="text-xs text-slate-400">${state.pkgKey} · ${fmtMoney(CONFIG.packages[state.pkgKey].price)}</div></div><div class="text-xs">${disabled? 'Ocupado':'Elegir'}</div>;
+      btn.innerHTML = `<div><div class="font-semibold">${labelLeft}</div><div class="text-xs text-slate-400">${state.pkgKey} · ${fmtMoney(CONFIG.packages[state.pkgKey].price)}</div></div><div class="text-xs">${disabled? 'Ocupado':'Elegir'}</div>`;
       btn.addEventListener('click', ()=>{ if(disabled) return; onPick(); });
       return btn;
     }
 
     async function refreshSlots(){
       slotsWrap.innerHTML = '';
-      if(!state.dateISO){ slotsWrap.innerHTML = <p class=\"text-slate-400 text-sm\">Elegí primero un día del calendario.</p>; return; }
-      if(!state.pkgKey){ slotsWrap.innerHTML = <p class=\"text-slate-400 text-sm\">Elegí primero un paquete.</p>; return; }
+      if(!state.dateISO){ slotsWrap.innerHTML = `<p class=\"text-slate-400 text-sm\">Elegí primero un día del calendario.</p>`; return; }
+      if(!state.pkgKey){ slotsWrap.innerHTML = `<p class=\"text-slate-400 text-sm\">Elegí primero un paquete.</p>`; return; }
 
       const pkg = CONFIG.packages[state.pkgKey];
       const frag = document.createDocumentFragment();
@@ -446,7 +446,7 @@
         const t = '10:00';
         const tEnd = addMinutes(t, pkg.duration); // 16:00
         const disabled = state.dayBusy.length > 0; // cualquier reserva del día bloquea Premium
-        frag.appendChild(makeSlotButton(${t} — ${tEnd} · (ocupa el día), '', disabled, ()=>{ state.slotStart = t; renderSummary(); }));
+        frag.appendChild(makeSlotButton(`${t} — ${tEnd} · (ocupa el día)`, '', disabled, ()=>{ state.slotStart = t; renderSummary(); }));
       }
       else if(state.pkgKey === 'ARTISTA'){
         // Solo 10, 11, 12, 13, 14, 15
@@ -455,17 +455,17 @@
           const tEnd = addMinutes(t, pkg.duration); // 3h
           let disabled = false;
           for(const b of state.dayBusy){ if(overlaps(t, tEnd, b.start, b.end)){ disabled = true; break; } }
-          frag.appendChild(makeSlotButton(${t} — ${tEnd}, '', disabled, ()=>{ state.slotStart = t; renderSummary(); }));
+          frag.appendChild(makeSlotButton(`${t} — ${tEnd}`, '', disabled, ()=>{ state.slotStart = t; renderSummary(); }));
         }
       }
       else if(state.pkgKey === 'Express'){
         // Opciones por hora de 10:00 a 17:00 (60 min)
         for(let h=CONFIG.startHour; h<=CONFIG.endHour-1; h++){
-          const t = ${pad(h)}:00;
+          const t = `${pad(h)}:00`;
           const tEnd = addMinutes(t, pkg.duration);
           let disabled = false;
           for(const b of state.dayBusy){ if(overlaps(t, tEnd, b.start, b.end)){ disabled = true; break; } }
-          frag.appendChild(makeSlotButton(${t} — ${tEnd}, '', disabled, ()=>{ state.slotStart = t; renderSummary(); }));
+          frag.appendChild(makeSlotButton(`${t} — ${tEnd}`, '', disabled, ()=>{ state.slotStart = t; renderSummary(); }));
         }
       } else {
         // fallback (no debería usarse)
@@ -481,13 +481,13 @@
       const pkg = state.pkgKey ? CONFIG.packages[state.pkgKey] : null;
       const accList = [...state.acc];
       const dateStr = state.dateISO ? fmtHuman(state.dateISO) : '—';
-      const timeStr = state.slotStart ? ${state.slotStart} — ${state.slotStart && pkg? addMinutes(state.slotStart, pkg.duration):''} : '—';
+      const timeStr = state.slotStart ? `${state.slotStart} — ${state.slotStart && pkg? addMinutes(state.slotStart, pkg.duration):''}` : '—';
       const subtotal = pkg? pkg.price : 0;
-      summary.innerHTML = 
+      summary.innerHTML = `
         <div class=\"p-3 rounded-xl border border-white/10\">
           <div class=\"text-sm text-slate-400\">Paquete</div>
           <div class=\"font-semibold text-lg\">${state.pkgKey || 'Elegí un paquete'}</div>
-          ${pkg? <div class=\"text-sm text-slate-400\">Duración: ${pkg.duration} min · ${fmtMoney(pkg.price)}</div>:''}
+          ${pkg? `<div class=\"text-sm text-slate-400\">Duración: ${pkg.duration} min · ${fmtMoney(pkg.price)}</div>`:''}
         </div>
         <div class=\"p-3 rounded-xl border border-white/10\">
           <div class=\"text-sm text-slate-400\">Fecha</div>
@@ -496,7 +496,7 @@
         </div>
         <div class=\"p-3 rounded-xl border border-white/10\">
           <div class=\"text-sm text-slate-400\">Accesorios (${accList.length})</div>
-          <div class=\"text-sm\">${accList.length? accList.map(a=><span class='tag mr-1'>${a}</span>).join(' ') : '—'}</div>
+          <div class=\"text-sm\">${accList.length? accList.map(a=>`<span class='tag mr-1'>${a}</span>`).join(' ') : '—'}</div>
         </div>
         <div class=\"p-3 rounded-xl border border-white/10 flex items-center justify-between\">
           <div>
@@ -505,21 +505,21 @@
           </div>
           <div class=\"text-right text-xs text-slate-400\">Se cobrará hora extra a ${fmtMoney(CONFIG.extraHourUSD)}/h si se excede el tiempo.</div>
         </div>
-      ;
+      `;
 
       const lines = [
         'Solicitud de reserva — B House Music',
-        state.lastBookingId ? Consecutivo: ${state.lastBookingId} : null,
-        Paquete: ${state.pkgKey || '—'},
-        Fecha: ${state.dateISO? fmtHuman(state.dateISO):'—'},
-        Hora: ${timeStr},
-        Accesorios: ${accList.length? accList.join(', '):'Ninguno'},
-        Subtotal: ${fmtMoney(subtotal)},
+        state.lastBookingId ? `Consecutivo: ${state.lastBookingId}` : null,
+        `Paquete: ${state.pkgKey || '—'}`,
+        `Fecha: ${state.dateISO? fmtHuman(state.dateISO):'—'}`,
+        `Hora: ${timeStr}`,
+        `Accesorios: ${accList.length? accList.join(', '):'Ninguno'}`,
+        `Subtotal: ${fmtMoney(subtotal)}`,
         '',
         '¿Me confirmás disponibilidad?'
       ].filter(Boolean);
       const baseMsg = encodeURIComponent(lines.join('\n'));
-      const wa = https://wa.me/${CONFIG.whatsappNumber}?text=${baseMsg};
+      const wa = `https://wa.me/${CONFIG.whatsappNumber}?text=${baseMsg}`;
       const hdr = document.getElementById('whatsHeader');
 if (hdr) hdr.href = wa;           // por si aún existiera
 window.__waHref = wa;             // respaldo para abrir WhatsApp sin el header
@@ -544,7 +544,7 @@ async function bookNow({ openWhats = true } = {}) {
 
   const pkg = CONFIG.packages[state.pkgKey];
   if (state.acc.size > pkg.maxAccessories) {
-    alert(En el paquete ${state.pkgKey} solo se permiten ${pkg.maxAccessories} accesorios.);
+    alert(`En el paquete ${state.pkgKey} solo se permiten ${pkg.maxAccessories} accesorios.`);
     return { ok: false };
   }
 
@@ -573,7 +573,7 @@ async function bookNow({ openWhats = true } = {}) {
 
       if (data && data.ok) {
         state.lastBookingId = data.id || null;
-        bookMsg.innerHTML = ✅ Reserva enviada.${state.lastBookingId ?  Consecutivo: <code class="badge">${state.lastBookingId}</code> : ''};
+        bookMsg.innerHTML = `✅ Reserva enviada.${state.lastBookingId ? ` Consecutivo: <code class="badge">${state.lastBookingId}</code>` : ''}`;
         bookMsg.classList.remove('hidden');
 
         await fetchAvailability();
@@ -583,19 +583,19 @@ async function bookNow({ openWhats = true } = {}) {
         if (openWhats) {
           // renderSummary actualiza el href del header con el consecutivo si existe
           const pkg = CONFIG.packages[state.pkgKey];
-const timeStr = ${state.slotStart} — ${addMinutes(state.slotStart, pkg.duration)};
+const timeStr = `${state.slotStart} — ${addMinutes(state.slotStart, pkg.duration)}`;
 const lines = [
   'Solicitud de reserva — B House Music',
-  state.lastBookingId ? Consecutivo: ${state.lastBookingId} : null,
-  Paquete: ${state.pkgKey || '—'},
-  Fecha: ${state.dateISO ? fmtHuman(state.dateISO) : '—'},
-  Hora: ${timeStr},
-  Accesorios: ${[...state.acc].join(', ') || 'Ninguno'},
-  Subtotal: ${fmtMoney(pkg.price)},
+  state.lastBookingId ? `Consecutivo: ${state.lastBookingId}` : null,
+  `Paquete: ${state.pkgKey || '—'}`,
+  `Fecha: ${state.dateISO ? fmtHuman(state.dateISO) : '—'}`,
+  `Hora: ${timeStr}`,
+  `Accesorios: ${[...state.acc].join(', ') || 'Ninguno'}`,
+  `Subtotal: ${fmtMoney(pkg.price)}`,
   '',
   '¿Me confirmás disponibilidad?'
 ].filter(Boolean);
-const waHref = https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))};
+const waHref = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
 window.open(waHref, '_blank');
 
           window.open(waHref, '_blank');
@@ -631,7 +631,7 @@ window.open(waHref, '_blank');
   store.add(booking);
   state.lastBookingId = id;
 
-  bookMsg.innerHTML = ✅ Reserva registrada (demo). <br><strong>Consecutivo:</strong> <code class="badge">${id}</code>.;
+  bookMsg.innerHTML = `✅ Reserva registrada (demo). <br><strong>Consecutivo:</strong> <code class="badge">${id}</code>.`;
   bookMsg.classList.remove('hidden');
 
   await fetchAvailability();
@@ -640,19 +640,19 @@ window.open(waHref, '_blank');
 
   if (openWhats) {
     const pkg = CONFIG.packages[state.pkgKey];
-const timeStr = ${state.slotStart} — ${addMinutes(state.slotStart, pkg.duration)};
+const timeStr = `${state.slotStart} — ${addMinutes(state.slotStart, pkg.duration)}`;
 const lines = [
   'Solicitud de reserva — B House Music',
-  state.lastBookingId ? Consecutivo: ${state.lastBookingId} : null,
-  Paquete: ${state.pkgKey || '—'},
-  Fecha: ${state.dateISO ? fmtHuman(state.dateISO) : '—'},
-  Hora: ${timeStr},
-  Accesorios: ${[...state.acc].join(', ') || 'Ninguno'},
-  Subtotal: ${fmtMoney(pkg.price)},
+  state.lastBookingId ? `Consecutivo: ${state.lastBookingId}` : null,
+  `Paquete: ${state.pkgKey || '—'}`,
+  `Fecha: ${state.dateISO ? fmtHuman(state.dateISO) : '—'}`,
+  `Hora: ${timeStr}`,
+  `Accesorios: ${[...state.acc].join(', ') || 'Ninguno'}`,
+  `Subtotal: ${fmtMoney(pkg.price)}`,
   '',
   '¿Me confirmás disponibilidad?'
 ].filter(Boolean);
-const waHref = https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))};
+const waHref = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
 window.open(waHref, '_blank');
 
     window.open(waHref, '_blank');
@@ -681,10 +681,10 @@ form.addEventListener('submit', async (e) => {
       const start = new Date(state.dateISO + 'T' + state.slotStart + ':00');
       const end = new Date(state.dateISO + 'T' + addMinutes(state.slotStart, pkg.duration) + ':00');
       const dt = (d)=> d.toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
-      const ics = BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//B House//Booking//ES\nBEGIN:VEVENT\nUID:${crypto.randomUUID()}\nDTSTAMP:${dt(new Date())}\nDTSTART:${dt(start)}\nDTEND:${dt(end)}\nSUMMARY:B House — ${state.pkgKey}\nDESCRIPTION:Accesorios: ${[...state.acc].join(', ') || 'Ninguno'}\\nContacto: WhatsApp +${CONFIG.whatsappNumber}\nLOCATION:${(new FormData(form).get('location')||'Por definir')}\nEND:VEVENT\nEND:VCALENDAR;
+      const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//B House//Booking//ES\nBEGIN:VEVENT\nUID:${crypto.randomUUID()}\nDTSTAMP:${dt(new Date())}\nDTSTART:${dt(start)}\nDTEND:${dt(end)}\nSUMMARY:B House — ${state.pkgKey}\nDESCRIPTION:Accesorios: ${[...state.acc].join(', ') || 'Ninguno'}\\nContacto: WhatsApp +${CONFIG.whatsappNumber}\nLOCATION:${(new FormData(form).get('location')||'Por definir')}\nEND:VEVENT\nEND:VCALENDAR`;
       const blob = new Blob([ics], {type:'text/calendar'});
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download = BHouse-${state.pkgKey}-${state.dateISO}.ics; a.click();
+      const a = document.createElement('a'); a.href=url; a.download = `BHouse-${state.pkgKey}-${state.dateISO}.ics`; a.click();
       setTimeout(()=>URL.revokeObjectURL(url), 1500);
     }
     document.getElementById('btnICS').onclick = makeICS;
@@ -701,13 +701,13 @@ form.addEventListener('submit', async (e) => {
       const d = parseISODate(b.date);
       setMonth(d.getFullYear(), d.getMonth());
       state.dateISO = b.date;
-      slotDateLabel.textContent = · ${fmtHuman(b.date)};
+      slotDateLabel.textContent = `· ${fmtHuman(b.date)}`;
       const chosen = [...calGrid.querySelectorAll('.day-cell')].find(x=> x.dataset.iso===b.date);
       document.querySelectorAll('.day-cell').forEach(el=>el.classList.remove('ring-2','ring-sky-400'));
       if(chosen){ chosen.classList.add('ring-2','ring-sky-400'); }
       fetchAvailability().then(()=>{
         refreshSlots();
-        cancelMsg.textContent = Reserva ${id}: ${b.date} ${b.start}–${b.end} (${b.pkg}).;
+        cancelMsg.textContent = `Reserva ${id}: ${b.date} ${b.start}–${b.end} (${b.pkg}).`;
         document.getElementById('slots').scrollIntoView({behavior:'smooth', block:'start'});
       });
     };
@@ -718,7 +718,7 @@ form.addEventListener('submit', async (e) => {
       const removed = store.removeById(id);
       if(!removed){ cancelMsg.textContent = 'No encontré una reserva con ese consecutivo (modo demo).'; return; }
       if(state.dateISO === removed.date){ fetchAvailability().then(refreshSlots); }
-      cancelMsg.textContent = ✅ Reserva ${id} eliminada y horario liberado (${removed.date} ${removed.start}–${removed.end}).;
+      cancelMsg.textContent = `✅ Reserva ${id} eliminada y horario liberado (${removed.date} ${removed.start}–${removed.end}).`;
       if(state.lastBookingId === id) state.lastBookingId = null;
       renderSummary();
     };
@@ -741,7 +741,7 @@ form.addEventListener('submit', async (e) => {
     (function runSelfTests(){
       const snapshot = { pkgKey: state.pkgKey, acc: new Set([...state.acc]), dateISO: state.dateISO, slotStart: state.slotStart, lastBookingId: state.lastBookingId };
       const results = [];
-      const assert = (name, cond) => results.push(${cond? '✅':'❌'} ${name});
+      const assert = (name, cond) => results.push(`${cond? '✅':'❌'} ${name}`);
 
       // Precios correctos
       assert('Precio Express $200', CONFIG.packages.Express.price === 200);
