@@ -158,8 +158,7 @@
             <label for="acceptTC" class="text-sm">Acepto <button type="button" id="openTC" class="underline underline-offset-2">Términos y Condiciones</button></label>
           </div>
           <div class="flex flex-wrap gap-2 pt-2">
-            <button id="btnReserve" class="px-4 py-2 rounded-xl bg-sky-500 text-slate-900 font-bold">Reservar</button>
-            <button id="btnWhats" type="button" class="px-4 py-2 rounded-xl border border-emerald-400/40">Confirmar por WhatsApp</button>
+            <button id="btnWhats" type="button" class="px-4 py-2 rounded-xl border border-emerald-400/40">Reservar por WhatsApp</button>
             <button id="btnICS" type="button" class="px-4 py-2 rounded-xl border border-white/20">Añadir a mi calendario (.ics)</button>
           </div>
           <p id="bookMsg" class="text-sm text-emerald-300 mt-2 hidden"></p>
@@ -514,71 +513,126 @@
       ].filter(Boolean);
       const baseMsg = encodeURIComponent(lines.join('\n'));
       const wa = `https://wa.me/${CONFIG.whatsappNumber}?text=${baseMsg}`;
-      document.getElementById('btnWhats').onclick = ()=> window.open(wa,'_blank');
       document.getElementById('whatsHeader').href = wa;
     }
 
-    // ====== FORM / BOOKING ======
-    const form = document.getElementById('bookForm');
-    const bookMsg = document.getElementById('bookMsg');
-    form.addEventListener('submit', async (e)=>{
-      e.preventDefault(); bookMsg.classList.add('hidden');
-      if(!state.pkgKey || !state.dateISO || !state.slotStart){ alert('Elegí paquete, fecha y hora primero.'); return; }
+// ====== FORM / BOOKING ======
+const form = document.getElementById('bookForm');
+const bookMsg = document.getElementById('bookMsg');
 
-      const pkg = CONFIG.packages[state.pkgKey];
-      if(state.acc.size > pkg.maxAccessories){ alert(`En el paquete ${state.pkgKey} solo se permiten ${pkg.maxAccessories} accesorios.`); return; }
+/**
+ * Crea la reserva (backend si está configurado; si no, modo demo localStorage),
+ * actualiza el estado y, si se pide, abre WhatsApp con el consecutivo ya incluido.
+ */
+async function bookNow({ openWhats = true } = {}) {
+  bookMsg.classList.add('hidden');
 
-      const payload = {
-        action: 'book',
-        pkg: state.pkgKey,
-        date: state.dateISO,
-        start: state.slotStart,
-        end: addMinutes(state.slotStart, pkg.duration),
-        tz: CONFIG.TZ,
-        accessories: [...state.acc],
-        extraHourUSD: CONFIG.extraHourUSD,
-        priceUSD: pkg.price,
-        customer: Object.fromEntries(new FormData(form).entries())
-      };
+  if (!state.pkgKey || !state.dateISO || !state.slotStart) {
+    alert('Elegí paquete, fecha y hora primero.');
+    return { ok: false };
+  }
 
-      if(CONFIG.api.bookingPOST){
-        try{
-          const res = await fetch(CONFIG.api.bookingPOST, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
-          const data = await res.json();
-          if(data.ok){
-            state.lastBookingId = data.id || null;
-            bookMsg.innerHTML = `✅ Reserva enviada. ${state.lastBookingId? `Consecutivo: <code class=\"badge\">${state.lastBookingId}</code>`: '(ID provisto por backend)'} .`;
-            bookMsg.classList.remove('hidden');
-            await fetchAvailability();
-            refreshSlots();
-            renderSummary();
-          }else{
-            bookMsg.textContent = 'No se pudo completar la reserva. Intenta por WhatsApp.';
-            bookMsg.classList.remove('hidden');
-          }
-        }catch(err){ console.error(err); alert('Error de conexión. Podés confirmar por WhatsApp.'); }
-        return;
+  const pkg = CONFIG.packages[state.pkgKey];
+  if (state.acc.size > pkg.maxAccessories) {
+    alert(`En el paquete ${state.pkgKey} solo se permiten ${pkg.maxAccessories} accesorios.`);
+    return { ok: false };
+  }
+
+  const payload = {
+    action: 'book',
+    pkg: state.pkgKey,
+    date: state.dateISO,
+    start: state.slotStart,
+    end: addMinutes(state.slotStart, pkg.duration),
+    tz: CONFIG.TZ,
+    accessories: [...state.acc],
+    extraHourUSD: CONFIG.extraHourUSD,
+    priceUSD: pkg.price,
+    customer: Object.fromEntries(new FormData(form).entries())
+  };
+
+  // --- BACKEND (si existe) ---
+  if (CONFIG.api.bookingPOST) {
+    try {
+      const res = await fetch(CONFIG.api.bookingPOST, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data && data.ok) {
+        state.lastBookingId = data.id || null;
+        bookMsg.innerHTML = `✅ Reserva enviada.${state.lastBookingId ? ` Consecutivo: <code class="badge">${state.lastBookingId}</code>` : ''}`;
+        bookMsg.classList.remove('hidden');
+
+        await fetchAvailability();
+        refreshSlots();
+        renderSummary();
+
+        if (openWhats) {
+          // renderSummary actualiza el href del header con el consecutivo si existe
+          const waHref = document.getElementById('whatsHeader').href;
+          window.open(waHref, '_blank');
+        }
+        return { ok: true, id: state.lastBookingId || null };
+      } else {
+        bookMsg.textContent = 'No se pudo completar la reserva. Intentá por WhatsApp.';
+        bookMsg.classList.remove('hidden');
+        return { ok: false };
       }
+    } catch (err) {
+      console.error(err);
+      alert('Error de conexión. Podés confirmar por WhatsApp.');
+      return { ok: false };
+    }
+  }
 
-      // ===== DEMO LOCAL (sin backend) =====
-      const busyLocal = store.busyForDate(state.dateISO);
-      const wouldEnd = addMinutes(state.slotStart, pkg.duration);
-      const clash = busyLocal.some(b => overlaps(state.slotStart, wouldEnd, b.start, b.end));
-      if(clash){ alert('Ese horario ya está reservado localmente. Probá otro.'); return; }
+  // --- DEMO LOCAL (sin backend) ---
+  const busyLocal = store.busyForDate(state.dateISO);
+  const wouldEnd = addMinutes(state.slotStart, pkg.duration);
+  const clash = busyLocal.some(b => overlaps(state.slotStart, wouldEnd, b.start, b.end));
+  if (clash) {
+    alert('Ese horario ya está reservado localmente. Probá otro.');
+    return { ok: false };
+  }
 
-      const id = store.nextId();
-      const booking = { id, ...payload, createdAt: new Date().toISOString() };
-      store.add(booking);
-      state.lastBookingId = id;
+  const id = store.nextId();
+  const booking = {
+    id,
+    ...payload,
+    createdAt: new Date().toISOString()
+  };
+  store.add(booking);
+  state.lastBookingId = id;
 
-      bookMsg.innerHTML = `✅ Reserva preparada (demo). <br><strong>Consecutivo:</strong> <code class=\"badge\">${id}</code> <button id=\"copyId\" type=\"button\" class=\"ml-2 underline\">Copiar</button>.<br>Enviá por WhatsApp para confirmar disponibilidad.`;
-      bookMsg.classList.remove('hidden');
-      document.getElementById('copyId').onclick = ()=> { navigator.clipboard.writeText(id).then(()=>{ document.getElementById('copyId').textContent = 'Copiado'; setTimeout(()=>document.getElementById('copyId').textContent='Copiar',1200); }); };
+  bookMsg.innerHTML = `✅ Reserva registrada (demo). <br><strong>Consecutivo:</strong> <code class="badge">${id}</code>.`;
+  bookMsg.classList.remove('hidden');
 
-      await fetchAvailability();
-      refreshSlots();
-      renderSummary();
-    });
+  await fetchAvailability();
+  refreshSlots();
+  renderSummary();
+
+  if (openWhats) {
+    const waHref = document.getElementById('whatsHeader').href;
+    window.open(waHref, '_blank');
+  }
+  return { ok: true, id };
+}
+
+// Clic en “Reservar por WhatsApp”: guarda la reserva y abre WhatsApp
+document.getElementById('btnWhats').onclick = async () => {
+  const res = await bookNow({ openWhats: true });
+  if (!res.ok) {
+    alert('No se pudo reservar. Intentá nuevamente o escribime por WhatsApp.');
+  }
+};
+
+// Si el usuario presiona Enter dentro del form, redirigimos al flujo de WhatsApp
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  document.getElementById('btnWhats').click();
+});
 
     // ====== ICS (añadir a mi calendario) ======
     function makeICS(){
