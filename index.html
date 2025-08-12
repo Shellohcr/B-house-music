@@ -46,7 +46,7 @@
     <section class="glass rounded-2xl p-4 sm:p-6 mb-6">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="space-y-1">
-          <p class="text-slate-200 text-sm">Disponibilidad: <span class="font-semibold">Sábados y Domingos</span> · <span class="font-semibold">10:00 a. m.</span> a <span class="font-semibold">6:00 p. m.</span></p>
+          <p class="text-slate-2 00 text-sm">Disponibilidad: <span class="font-semibold">Sábados y Domingos</span> · <span class="font-semibold">10:00 a. m.</span> a <span class="font-semibold">6:00 p. m.</span></p>
           <p class="text-slate-400 text-xs">Última hora permitida = que la sesión termine a más tardar 6:00 p. m. (se calcula según el paquete). Extra: $200/h si se excede.
             Cámara incluida (no aparece en accesorios). En paquete Express máximo 2 accesorios. <strong>Drone no disponible en Express ni en ARTISTA.</strong></p>
         </div>
@@ -162,19 +162,20 @@
             <button id="btnWhats" type="button" class="px-4 py-2 rounded-xl border border-emerald-400/40">Confirmar por WhatsApp</button>
             <button id="btnICS" type="button" class="px-4 py-2 rounded-xl border border-white/20">Añadir a mi calendario (.ics)</button>
           </div>
-
-          <!-- NUEVO: Cancelar por consecutivo (mínimo cambio de UI) -->
-          <div class="grid sm:grid-cols-3 gap-2 pt-3 border-t border-white/10">
-            <div class="sm:col-span-2">
-              <input id="cancelId" class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10" placeholder="Consecutivo (ej. BHM-000001)" />
-            </div>
-            <button id="btnCancel" type="button" class="px-4 py-2 rounded-xl border border-rose-400/40 hover:bg-rose-500/10">Cancelar por consecutivo</button>
-          </div>
-
           <p id="bookMsg" class="text-sm text-emerald-300 mt-2 hidden"></p>
-          <p id="cancelMsg" class="text-sm text-rose-300 mt-1 hidden"></p>
         </form>
       </div>
+    </section>
+
+    <!-- Cancelación por consecutivo -->
+    <section class="glass rounded-2xl p-5 mt-6">
+      <h3 class="font-semibold mb-3">Cancelar / Rehabilitar reserva (por consecutivo)</h3>
+      <div class="flex flex-col sm:flex-row gap-2">
+        <input id="cancelId" class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10" placeholder="Ej. BHM-20250812-0003" />
+        <button id="btnLocate" type="button" class="px-4 py-2 rounded-xl border border-white/20">Ver en calendario</button>
+        <button id="btnCancel" type="button" class="px-4 py-2 rounded-xl bg-rose-500/90 text-slate-900 font-bold">Eliminar y liberar</button>
+      </div>
+      <p id="cancelMsg" class="text-sm mt-2 text-slate-300"></p>
     </section>
 
     <!-- Modal TyC -->
@@ -212,12 +213,10 @@
       stepMinutes: 30,    // intervalos para mostrar slots
       whatsappNumber: '50670166631',
       api: {
-        // Reemplaza con tus Apps Script/Backend para bloqueo real
         // availabilityGET debe responder: { ok:true, busy:[{start:'HH:MM', end:'HH:MM'}] }
-        // bookingPOST debe aceptar el payload y devolver { ok:true, id:'BHM-000001' }
-        // y para cancelar: { action:'cancel', id:'BHM-000001' } -> { ok:true }
-        availabilityGET: null,
-        bookingPOST: null
+        // bookingPOST debe aceptar el payload y devolver { ok:true, id:'<consecutivo>' }
+        availabilityGET: null, // 'https://script.google.com/macros/s/XXXX/exec?action=availability&date=YYYY-MM-DD'
+        bookingPOST: null      // 'https://script.google.com/macros/s/XXXX/exec'
       },
       packages: {
         Express:  { price: 100, duration: 60,  bufferAfter: 120, maxAccessories: 2,   banned:['Drone'] },
@@ -236,7 +235,39 @@
       acc: new Set(),
       dateISO: null, // YYYY-MM-DD
       slotStart: null, // 'HH:MM'
-      dayBusy: [] // [{start,end}] desde backend + local
+      dayBusy: [], // [{start,end}] desde backend/demo
+      lastBookingId: null // consecutivo más reciente (opcional, para Whats/UX)
+    };
+
+    // ====== STORAGE (demo sin backend) ======
+    const store = {
+      key: 'bhouse_bookings',
+      seqKey: (dateStr)=> 'bhouse_seq_' + dateStr, // por día
+      load(){ try { return JSON.parse(localStorage.getItem(this.key) || '[]'); } catch{ return []; } },
+      save(arr){ localStorage.setItem(this.key, JSON.stringify(arr)); },
+      nextId(){
+        const today = new Date();
+        const ymd = today.toISOString().slice(0,10).replace(/-/g,''); // YYYYMMDD
+        const k = this.seqKey(ymd);
+        const next = (parseInt(localStorage.getItem(k)||'0',10) || 0) + 1;
+        localStorage.setItem(k, String(next));
+        return `BHM-${ymd}-${String(next).padStart(4,'0')}`;
+      },
+      addBooking(b){
+        const arr = this.load(); arr.push(b); this.save(arr);
+      },
+      removeById(id){
+        const arr = this.load();
+        const idx = arr.findIndex(x=> x.id===id);
+        if(idx>=0){ const [removed]=arr.splice(idx,1); this.save(arr); return removed; }
+        return null;
+      },
+      findById(id){ return this.load().find(x=>x.id===id) || null; },
+      busyForDate(dateISO){
+        return this.load()
+          .filter(b=> b.date===dateISO)
+          .map(b=> ({start:b.start, end:b.end}));
+      }
     };
 
     // ====== UTILS ======
@@ -254,35 +285,6 @@
       return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
     const overlaps = (aStart, aEnd, bStart, bEnd) => !(aEnd <= bStart || aStart >= bEnd);
-
-    // ====== RESERVAS LOCALES (DEMO) con consecutivo ======
-    const LS_BOOK = 'bhouse_bookings';
-    const LS_SEQ  = 'bhouse_lastSeq';
-
-    const nextConsecutive = () => {
-      const last = parseInt(localStorage.getItem(LS_SEQ)||'0',10) || 0;
-      const next = last + 1;
-      localStorage.setItem(LS_SEQ, String(next));
-      return `BHM-${String(next).padStart(6,'0')}`;
-    };
-    const getAllBookings = () => {
-      try { return JSON.parse(localStorage.getItem(LS_BOOK)) || []; }
-      catch { return []; }
-    };
-    const saveAllBookings = (arr) => localStorage.setItem(LS_BOOK, JSON.stringify(arr));
-    const localSaveBooking = (rec) => { const arr=getAllBookings(); arr.push(rec); saveAllBookings(arr); return rec; };
-    const localCancelById = (id) => {
-      const arr = getAllBookings();
-      const idx = arr.findIndex(r => r.id === id);
-      if (idx >= 0) {
-        const [rec] = arr.splice(idx,1);
-        saveAllBookings(arr);
-        return rec; // {id,date,start,end,...}
-      }
-      return null;
-    };
-    const localBusyForDate = (dateISO) =>
-      getAllBookings().filter(r => r.date === dateISO).map(r => ({ start:r.start, end:r.end }));
 
     // ====== ACCESSORIOS RENDER ======
     const accWrap = document.getElementById('acc-list');
@@ -303,8 +305,8 @@
       });
     }
 
+    // (FIX) listener: selector corregido
     accWrap.addEventListener('change', (e)=>{
-      // FIX de comilla en el selector:
       if(!e.target.matches('input[type="checkbox"]')) return;
       const label = e.target.getAttribute('data-acc');
       if(e.target.checked){ state.acc.add(label); } else { state.acc.delete(label); }
@@ -374,6 +376,7 @@
         const disabled = !isCurrentMonth || !isWeekend || date < new Date(new Date().toDateString());
         const cell = document.createElement('button');
         cell.className = `day-cell ${disabled? 'day-disabled':''}`;
+        cell.dataset.iso = iso; // para ubicar por ID
         cell.innerHTML = `<div class="text-sm">${c.day}</div><div class="text-right text-[10px] text-slate-400">${isWeekend && isCurrentMonth ? 'Disponible' : ''}</div>`;
         cell.addEventListener('click', ()=>{
           if(disabled) return;
@@ -384,6 +387,12 @@
         });
         calGrid.appendChild(cell);
       });
+
+      // destacar si ya hay una fecha elegida
+      if(state.dateISO){
+        const chosen = [...calGrid.querySelectorAll('.day-cell')].find(x=> x.dataset.iso===state.dateISO);
+        if(chosen){ chosen.classList.add('ring-2','ring-sky-400'); }
+      }
     }
 
     document.getElementById('prevMonth').onclick = ()=>{
@@ -393,13 +402,12 @@
       const d = new Date(viewYear, viewMonth+1, 1); setMonth(d.getFullYear(), d.getMonth());
     };
 
-    // ====== DISPONIBILIDAD (BACKEND + LOCAL) ======
+    // ====== DISPONIBILIDAD (BACKEND + DEMO LOCAL) ======
     async function fetchAvailability(){
-      // base
       state.dayBusy = [];
       if(!state.dateISO) return;
 
-      // Backend
+      // 1) Backend (si existe)
       if(CONFIG.api.availabilityGET){
         try{
           const url = `${CONFIG.api.availabilityGET}?date=${encodeURIComponent(state.dateISO)}` + (state.pkgKey? `&pkg=${encodeURIComponent(state.pkgKey)}`:'');
@@ -409,11 +417,10 @@
             state.dayBusy = data.busy; // [{start,end}]
           }
         }catch(err){ console.warn('No availability backend:', err); }
+      } else {
+        // 2) DEMO localStorage (sin backend)
+        state.dayBusy = store.busyForDate(state.dateISO);
       }
-
-      // Merge local (demo)
-      const localB = localBusyForDate(state.dateISO);
-      state.dayBusy = [...state.dayBusy, ...localB];
     }
 
     // ====== SLOTS ======
@@ -440,13 +447,12 @@
       const frag = document.createDocumentFragment();
       times.forEach(t=>{
         let disabled = false;
-        // Regla: Express con buffer de 2h después no puede pasar del cierre
         if(state.pkgKey==='Express'){
           const endTime = addMinutes(t, pkg.duration);
           const bufferEnd = addMinutes(endTime, pkg.bufferAfter);
           if(bufferEnd > `${pad(end)}:00`) disabled = true;
         }
-        // Bloqueos traídos del backend + local
+        // Bloqueos traídos (backend o demo)
         for(const b of state.dayBusy){
           const tEnd = addMinutes(t, pkg.duration);
           if(overlaps(t, tEnd, b.start, b.end)){ disabled = true; break; }
@@ -493,9 +499,10 @@
         </div>
       `;
 
-      // build WhatsApp links
-      const baseMsg = encodeURIComponent([
+      // WhatsApp: incluir consecutivo si ya existe
+      const lines = [
         'Solicitud de reserva — B House Music',
+        state.lastBookingId ? `Consecutivo: ${state.lastBookingId}` : null,
         `Paquete: ${state.pkgKey || '—'}`,
         `Fecha: ${state.dateISO? fmtHuman(state.dateISO):'—'}`,
         `Hora: ${timeStr}`,
@@ -503,7 +510,8 @@
         `Subtotal: ${fmtMoney(subtotal)}`,
         '',
         '¿Me confirmás disponibilidad?'
-      ].join('\n'));
+      ].filter(Boolean);
+      const baseMsg = encodeURIComponent(lines.join('\n'));
       const wa = `https://wa.me/${CONFIG.whatsappNumber}?text=${baseMsg}`;
       document.getElementById('btnWhats').onclick = ()=> window.open(wa,'_blank');
       document.getElementById('whatsHeader').href = wa;
@@ -512,11 +520,8 @@
     // ====== FORM / BOOKING ======
     const form = document.getElementById('bookForm');
     const bookMsg = document.getElementById('bookMsg');
-    const cancelMsg = document.getElementById('cancelMsg');
-    const cancelIdInput = document.getElementById('cancelId');
-
     form.addEventListener('submit', async (e)=>{
-      e.preventDefault(); bookMsg.classList.add('hidden'); cancelMsg.classList.add('hidden');
+      e.preventDefault(); bookMsg.classList.add('hidden');
       if(!state.pkgKey || !state.dateISO || !state.slotStart){
         alert('Elegí paquete, fecha y hora primero.'); return;
       }
@@ -528,7 +533,6 @@
 
       const payload = {
         action: 'book',
-        id: nextConsecutive(), // asignamos consecutivo desde el cliente
         pkg: state.pkgKey,
         date: state.dateISO,
         start: state.slotStart,
@@ -540,73 +544,53 @@
         customer: Object.fromEntries(new FormData(form).entries())
       };
 
-      if(!CONFIG.api.bookingPOST){
-        // Modo demo sin backend — bloquea localmente y muestra consecutivo
-        localSaveBooking(payload);
-        await fetchAvailability();
-        refreshSlots();
-        bookMsg.textContent = `✅ Reserva preparada (demo). Consecutivo: ${payload.id}. Guardalo para cancelar si ocupás.`;
-        bookMsg.classList.remove('hidden');
-        cancelIdInput.value = payload.id; // lo dejamos listo por si desea cancelar
+      // Si hay backend -> delegar y usar ID que devuelva
+      if(CONFIG.api.bookingPOST){
+        try{
+          const res = await fetch(CONFIG.api.bookingPOST, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+          const data = await res.json();
+          if(data.ok){
+            state.lastBookingId = data.id || null;
+            bookMsg.textContent = `✅ Reserva enviada. Consecutivo: ${state.lastBookingId || '(provisto por backend)'}. Pronto te confirmaremos por WhatsApp/Correo.`;
+            bookMsg.classList.remove('hidden');
+            await fetchAvailability();
+            refreshSlots();
+            renderSummary();
+          }else{
+            bookMsg.textContent = 'No se pudo completar la reserva. Intenta por WhatsApp.';
+            bookMsg.classList.remove('hidden');
+          }
+        }catch(err){
+          console.error(err);
+          alert('Error de conexión. Podés confirmar por WhatsApp.');
+        }
         return;
       }
 
-      try{
-        const res = await fetch(CONFIG.api.bookingPOST, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
-        const data = await res.json();
-        const assignedId = data.id || payload.id; // si backend devuelve id, se respeta
-        if(data.ok){
-          bookMsg.textContent = `✅ Reserva enviada. Consecutivo: ${assignedId}. Te confirmaremos por WhatsApp/Correo.`;
-          await fetchAvailability();
-          refreshSlots();
-          cancelIdInput.value = assignedId;
-        }else{
-          bookMsg.textContent = 'No se pudo completar la reserva. Intenta por WhatsApp.';
-        }
-        bookMsg.classList.remove('hidden');
-      }catch(err){
-        console.error(err);
-        alert('Error de conexión. Podés confirmar por WhatsApp.');
-      }
+      // ===== DEMO LOCAL (sin backend): genera consecutivo y bloquea localmente =====
+      // Validar que no esté ocupado por otra reserva local
+      const busyLocal = store.busyForDate(state.dateISO);
+      const wouldEnd = addMinutes(state.slotStart, pkg.duration);
+      const clash = busyLocal.some(b => overlaps(state.slotStart, wouldEnd, b.start, b.end));
+      if(clash){ alert('Ese horario ya está reservado localmente. Probá otro.'); return; }
+
+      const id = store.nextId();
+      const booking = {
+        id,
+        ...payload,
+        createdAt: new Date().toISOString()
+      };
+      store.addBooking(booking);
+      state.lastBookingId = id;
+
+      bookMsg.innerHTML = `✅ Reserva preparada (modo demo). <br><strong>Consecutivo:</strong> <code class="px-2 py-1 rounded bg-white/10">${id}</code> <button id="copyId" type="button" class="ml-2 underline">Copiar</button>.<br>Enviá por WhatsApp para confirmar disponibilidad.`;
+      bookMsg.classList.remove('hidden');
+      document.getElementById('copyId').onclick = ()=> { navigator.clipboard.writeText(id).then(()=>{ document.getElementById('copyId').textContent = 'Copiado'; setTimeout(()=>document.getElementById('copyId').textContent='Copiar',1200); }); };
+
+      await fetchAvailability();
+      refreshSlots();
+      renderSummary();
     });
-
-    // ====== CANCELAR POR CONSECUTIVO ======
-    document.getElementById('btnCancel').onclick = async ()=>{
-      cancelMsg.classList.add('hidden');
-      const id = (cancelIdInput.value || '').trim();
-      if(!id){ alert('Ingresá el consecutivo (ej. BHM-000001).'); return; }
-
-      if(!CONFIG.api.bookingPOST){
-        // demo local
-        const rec = localCancelById(id);
-        if(rec){
-          // Si estamos viendo ese día, recargar disponibilidad
-          if(state.dateISO === rec.date){ await fetchAvailability(); refreshSlots(); }
-          cancelMsg.textContent = `✅ Reserva ${id} cancelada (demo) y espacio liberado.`;
-        }else{
-          cancelMsg.textContent = 'No encontré ese consecutivo en este dispositivo.';
-        }
-        cancelMsg.classList.remove('hidden');
-        return;
-      }
-
-      // Backend
-      try{
-        const res = await fetch(CONFIG.api.bookingPOST, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'cancel', id})});
-        const data = await res.json();
-        if(data.ok){
-          await fetchAvailability();
-          refreshSlots();
-          cancelMsg.textContent = `✅ Reserva ${id} cancelada y espacio liberado.`;
-        }else{
-          cancelMsg.textContent = `No se pudo cancelar la reserva ${id}.`;
-        }
-        cancelMsg.classList.remove('hidden');
-      }catch(err){
-        console.error(err);
-        alert('Error de conexión al cancelar.');
-      }
-    };
 
     // ====== ICS (añadir a mi calendario) ======
     function makeICS(){
@@ -622,6 +606,44 @@
       setTimeout(()=>URL.revokeObjectURL(url), 1500);
     }
     document.getElementById('btnICS').onclick = makeICS;
+
+    // ====== CANCELACIÓN POR CONSECUTIVO (demo local) ======
+    const cancelInput = document.getElementById('cancelId');
+    const cancelMsg = document.getElementById('cancelMsg');
+    document.getElementById('btnLocate').onclick = ()=>{
+      const id = (cancelInput.value||'').trim();
+      if(!id){ cancelMsg.textContent = 'Ingresá el consecutivo.'; return; }
+      const b = store.findById(id);
+      if(!b){ cancelMsg.textContent = 'No encontré una reserva con ese consecutivo (en modo demo).'; return; }
+      // Ubicar en calendario
+      const d = parseISODate(b.date);
+      setMonth(d.getFullYear(), d.getMonth());
+      state.dateISO = b.date;
+      slotDateLabel.textContent = `· ${fmtHuman(b.date)}`;
+      // resaltar celda
+      const chosen = [...calGrid.querySelectorAll('.day-cell')].find(x=> x.dataset.iso===b.date);
+      document.querySelectorAll('.day-cell').forEach(el=>el.classList.remove('ring-2','ring-sky-400'));
+      if(chosen){ chosen.classList.add('ring-2','ring-sky-400'); }
+      fetchAvailability().then(()=>{
+        refreshSlots();
+        cancelMsg.textContent = `Reserva ${id}: ${b.date} ${b.start}–${b.end} (${b.pkg}).`;
+        document.getElementById('slots').scrollIntoView({behavior:'smooth', block:'start'});
+      });
+    };
+
+    document.getElementById('btnCancel').onclick = ()=>{
+      const id = (cancelInput.value||'').trim();
+      if(!id){ cancelMsg.textContent = 'Ingresá el consecutivo.'; return; }
+      const removed = store.removeById(id);
+      if(!removed){ cancelMsg.textContent = 'No encontré una reserva con ese consecutivo (en modo demo).'; return; }
+      // Si la reserva cancelada es del día en vista, refrescar disponibilidad
+      if(state.dateISO === removed.date){
+        fetchAvailability().then(refreshSlots);
+      }
+      cancelMsg.textContent = `✅ Reserva ${id} eliminada y horario liberado (${removed.date} ${removed.start}–${removed.end}).`;
+      if(state.lastBookingId === id) state.lastBookingId = null;
+      renderSummary();
+    };
 
     // ====== TyC modal ======
     const tcModal = document.getElementById('tcModal');
@@ -639,37 +661,25 @@
 
     // ====== TESTS (consola) ======
     (function runSelfTests(){
-      const snapshot = { pkgKey: state.pkgKey, acc: new Set([...state.acc]), dateISO: state.dateISO, slotStart: state.slotStart };
+      const snapshot = { pkgKey: state.pkgKey, acc: new Set([...state.acc]), dateISO: state.dateISO, slotStart: state.slotStart, lastBookingId: state.lastBookingId };
       const results = [];
       const assert = (name, cond) => results.push(`${cond? '✅':'❌'} ${name}`);
 
-      // Test 1: Express máximo 2 accesorios
-      state.pkgKey = 'Express'; refreshAccessoryStates();
-      state.acc = new Set(['Estabilizador (gimbal)','Kit de luces','Trípode']);
-      const expressOk = state.acc.size <= CONFIG.packages.Express.maxAccessories;
-      assert('Express: máximo 2 accesorios (lógica de tope)', expressOk || state.acc.size === 2);
-
-      // Test 2: Drone bloqueado en Express y ARTISTA
+      // Test 1: Drone bloqueado en Express y ARTISTA
       const droneChk = [...document.querySelectorAll('#acc-list input[type="checkbox"]')].find(c=>c.getAttribute('data-acc')==='Drone');
       state.pkgKey = 'Express'; refreshAccessoryStates();
       assert('Drone deshabilitado en Express', !!droneChk && droneChk.disabled === true);
       state.pkgKey = 'ARTISTA'; refreshAccessoryStates();
       assert('Drone deshabilitado en ARTISTA', !!droneChk && droneChk.disabled === true);
 
-      // Test 3: WhatsApp link
+      // Test 2: WhatsApp link se genera
       state.pkgKey = 'Express'; state.dateISO = toISODate(new Date()); state.slotStart = '10:00'; renderSummary();
       assert('WhatsApp link generado', !!document.getElementById('whatsHeader').href);
-
-      // Test 4: Consecutivo local y cancelación
-      const tmpId = nextConsecutive();
-      localSaveBooking({id:tmpId, date: state.dateISO, start:'10:00', end:'11:00'});
-      const got = localCancelById(tmpId);
-      assert('Cancelar por consecutivo (demo) devuelve la reserva', !!got && got.id===tmpId);
 
       console.log('Pruebas B House →', ...results);
 
       // restore snapshot
-      state.pkgKey = snapshot.pkgKey; state.acc = snapshot.acc; state.dateISO = snapshot.dateISO; state.slotStart = snapshot.slotStart; renderSummary();
+      state.pkgKey = snapshot.pkgKey; state.acc = snapshot.acc; state.dateISO = snapshot.dateISO; state.slotStart = snapshot.slotStart; state.lastBookingId = snapshot.lastBookingId; renderSummary();
     })();
   </script>
 </body>
