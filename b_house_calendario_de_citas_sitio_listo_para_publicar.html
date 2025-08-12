@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>B House | Agenda de Video</title>
+  <meta name="description" content="Agenda tus paquetes de video con B House. Calendario tipo hotel, paquetes y horario de fines de semana." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { --brand:#0ea5e9; --ink:#0f172a; --soft:#f1f5f9; }
+    html,body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:#0b1220;color:#e5e7eb}
+    .glass{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08)}
+    .kbd{border:1px solid #3b4252;background:#0f172a;border-radius:.5rem;padding:.15rem .4rem;font-size:.75rem}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.5rem}
+    .day-cell{aspect-ratio:1/1;border-radius:.75rem;padding:.5rem;display:flex;flex-direction:column;justify-content:space-between;border:1px dashed rgba(255,255,255,.08)}
+    .day-disabled{opacity:.35;filter:grayscale(.3)}
+    .slot{border:1px solid rgba(255,255,255,.1);border-radius:.75rem;padding:.6rem .75rem;display:flex;justify-content:space-between;align-items:center}
+    .slot[disabled]{opacity:.4;cursor:not-allowed}
+    .tag{font-size:.7rem;border:1px solid rgba(255,255,255,.18);padding:.1rem .4rem;border-radius:.4rem}
+  </style>
+</head>
+<body class="min-h-screen selection:bg-sky-500/30">
+  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+        </div>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-bold tracking-tight">B House Music · Agenda de Video</h1>
+          <p class="text-slate-400 text-sm">Sistema de reservas tipo hotel · sin necesidad de crear cuenta</p>
+        </div>
+      </div>
+      <a id="whatsHeader" target="_blank" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-emerald-400/30 text-emerald-300 hover:bg-emerald-400/10 transition">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.86 11.86 0 0012 0C5.37 0 0 5.37 0 12a11.86 11.86 0 001.68 6.06L0 24l6.13-1.6A11.86 11.86 0 0012 24c6.63 0 12-5.37 12-12 0-3.2-1.24-6.21-3.48-8.52zM12 21.5c-1.82 0-3.54-.5-5.04-1.45l-.36-.23-3.64.95.97-3.55-.24-.37A9.5 9.5 0 1121.5 12 9.52 9.52 0 0112 21.5zm5.26-6.9c-.29-.15-1.72-.85-1.98-.95-.27-.1-.46-.15-.65.15-.19.29-.75.94-.92 1.13-.17.19-.34.21-.63.08-.29-.14-1.22-.45-2.32-1.43a8.7 8.7 0 01-1.62-2.02c-.17-.29 0-.45.13-.6.13-.15.29-.37.44-.56.15-.19.2-.32.29-.53.1-.21.05-.39-.03-.54-.08-.15-.65-1.56-.9-2.12-.24-.58-.48-.5-.65-.5-.17 0-.37-.02-.56-.02-.19 0-.52.07-.79.38-.27.29-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.06.15.19 2.1 3.21 5.08 4.5.71.31 1.26.5 1.69.64.71.22 1.36.19 1.87.11.57-.08 1.72-.7 1.96-1.37.24-.68.24-1.26.17-1.38-.07-.12-.26-.2-.55-.36z"/></svg>
+        <span class="text-sm font-semibold">WhatsApp</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+    <!-- Config summary / anuncios -->
+    <section class="glass rounded-2xl p-4 sm:p-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="space-y-1">
+          <p class="text-slate-200 text-sm">Disponibilidad: <span class="font-semibold">Sábados y Domingos</span> · <span class="font-semibold">10:00 a. m.</span> a <span class="font-semibold">6:00 p. m.</span></p>
+          <p class="text-slate-400 text-xs">Última hora permitida = que la sesión termine a más tardar 6:00 p. m. (se calcula según el paquete). Extra: $200/h si se excede.
+            Cámara incluida (no aparece en accesorios). En paquete Express máximo 2 accesorios.</p>
+        </div>
+        <div class="flex gap-2 text-xs text-slate-300">
+          <span class="kbd">? Paquete</span>
+          <span class="kbd">Click día</span>
+          <span class="kbd">Elige hora</span>
+          <span class="kbd">Reserva</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Paquetes -->
+    <section class="grid md:grid-cols-3 gap-4 mb-8">
+      <div class="glass rounded-2xl p-5" id="pkg-Express">
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-lg font-bold">Express</h2>
+          <span class="tag">60 min</span>
+        </div>
+        <p class="text-2xl font-extrabold">$100</p>
+        <p class="text-slate-400 text-sm mb-4">Buffer de 2 h después. Incluye cámara. Máximo 2 accesorios.</p>
+        <button data-pkg="Express" class="selectPkg w-full mt-2 px-4 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40">Elegir Express</button>
+      </div>
+      <div class="glass rounded-2xl p-5" id="pkg-DosHoras">
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-lg font-bold">Dos horas</h2>
+          <span class="tag">120 min</span>
+        </div>
+        <p class="text-2xl font-extrabold">$150</p>
+        <p class="text-slate-400 text-sm mb-4">Incluye cámara. Accesorios a elección.</p>
+        <button data-pkg="DosHoras" class="selectPkg w-full mt-2 px-4 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40">Elegir 2 horas</button>
+      </div>
+      <div class="glass rounded-2xl p-5" id="pkg-Premium">
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-lg font-bold">Premium</h2>
+          <span class="tag">240 min</span>
+        </div>
+        <p class="text-2xl font-extrabold">$300</p>
+        <p class="text-slate-400 text-sm mb-4">Paquete completo. Accesorios a elección.</p>
+        <button data-pkg="Premium" class="selectPkg w-full mt-2 px-4 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40">Elegir Premium</button>
+      </div>
+    </section>
+
+    <!-- Accesorios -->
+    <section class="glass rounded-2xl p-5 mb-8">
+      <h3 class="font-semibold mb-2">Accesorios (opcional)</h3>
+      <p class="text-slate-400 text-sm mb-4">La cámara SIEMPRE va incluida. Marca solo lo que necesitas adicional. En Express se permite máximo 2 accesorios.</p>
+      <div id="acc-list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-2"></div>
+    </section>
+
+    <!-- Calendario + Slots -->
+    <section class="grid lg:grid-cols-5 gap-6">
+      <div class="lg:col-span-3 glass rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="font-semibold text-lg" id="calTitle">Calendario</h3>
+            <p class="text-slate-400 text-sm">Tipo hotel: elige el día disponible</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="prevMonth" class="px-3 py-2 rounded-xl border border-slate-600 hover:bg-white/5">◀</button>
+            <button id="nextMonth" class="px-3 py-2 rounded-xl border border-slate-600 hover:bg-white/5">▶</button>
+          </div>
+        </div>
+        <div class="cal-grid text-sm mb-2 text-slate-400">
+          <div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sá</div><div>Do</div>
+        </div>
+        <div id="calGrid" class="cal-grid"></div>
+        <p class="text-xs text-slate-400 mt-3">Gris = no disponible. Solo fines de semana. La hora se elige a la derecha.</p>
+      </div>
+
+      <div class="lg:col-span-2 glass rounded-2xl p-5">
+        <h3 class="font-semibold mb-2">Horas disponibles <span id="slotDateLabel" class="text-slate-400 font-normal"></span></h3>
+        <div id="slots" class="space-y-2 min-h-[200px]"></div>
+      </div>
+    </section>
+
+    <!-- Resumen/Reserva -->
+    <section class="glass rounded-2xl p-5 mt-8">
+      <h3 class="font-semibold mb-4">Tu reserva</h3>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="space-y-3" id="summary"></div>
+        <form id="bookForm" class="space-y-3">
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm text-slate-300">Nombre y apellidos</label>
+              <input required name="name" class="w-full mt-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10" placeholder="Tu nombre" />
+            </div>
+            <div>
+              <label class="text-sm text-slate-300">Teléfono (WhatsApp)</label>
+              <input required name="phone" class="w-full mt-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10" placeholder="+506 ..." />
+            </div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm text-slate-300">Correo</label>
+              <input type="email" required name="email" class="w-full mt-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10" placeholder="tucorreo@..." />
+            </div>
+            <div>
+              <label class="text-sm text-slate-300">Lugar / Dirección</label>
+              <input name="location" class="w-full mt-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10" placeholder="Ej. La Cali, San José" />
+            </div>
+          </div>
+          <div>
+            <label class="text-sm text-slate-300">Notas</label>
+            <textarea name="notes" rows="3" class="w-full mt-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10" placeholder="Detalles, referencias, etc."></textarea>
+          </div>
+          <div class="flex items-center gap-2">
+            <input id="acceptTC" type="checkbox" class="h-4 w-4" required />
+            <label for="acceptTC" class="text-sm">Acepto <button type="button" id="openTC" class="underline underline-offset-2">Términos y Condiciones</button></label>
+          </div>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button id="btnReserve" class="px-4 py-2 rounded-xl bg-sky-500 text-slate-900 font-bold">Reservar</button>
+            <button id="btnWhats" type="button" class="px-4 py-2 rounded-xl border border-emerald-400/40">Confirmar por WhatsApp</button>
+            <button id="btnICS" type="button" class="px-4 py-2 rounded-xl border border-white/20">Añadir a mi calendario (.ics)</button>
+          </div>
+          <p id="bookMsg" class="text-sm text-emerald-300 mt-2 hidden"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- Modal TyC -->
+    <dialog id="tcModal" class="w-full max-w-3xl bg-slate-900/95 text-slate-100 rounded-2xl p-0 border border-white/10">
+      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div class="flex items-center justify-between">
+          <h4 class="text-lg font-bold">Términos y Condiciones — B House Music</h4>
+          <button id="closeTC" class="px-3 py-2 rounded-xl border border-white/20">Cerrar</button>
+        </div>
+        <ol class="list-decimal list-inside text-sm text-slate-300 space-y-2">
+          <li>Agenda disponible <strong>únicamente</strong> sábados y domingos entre <strong>10:00 a. m.</strong> y <strong>6:00 p. m.</strong> La última hora disponible dependerá del paquete elegido.</li>
+          <li>Paquetes y precios (USD): Express $100 (60 min), Dos horas $150 (120 min), Premium $300 (240 min). Hora adicional: $200.</li>
+          <li>Paquete Express permite <strong>máximo 2</strong> accesorios. La cámara está incluida en todos los paquetes.</li>
+          <li>Si se excede el tiempo del paquete, se facturará la hora adicional indicada. La fracción superior a 15 minutos cuenta como hora completa.</li>
+          <li>Reprogramaciones: con mínimo 48 h de anticipación. El mismo día no se reprograma salvo fuerza mayor.</li>
+          <li>Al reservar se solicita confirmación por WhatsApp. La fecha no se garantiza sin confirmación.</li>
+          <li>El desplazamiento fuera del GAM puede generar costos adicionales.</li>
+          <li>Al enviar la reserva aceptas estas condiciones.</li>
+        </ol>
+      </div>
+    </dialog>
+  </main>
+
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-6 text-center text-xs text-slate-400">
+    © <span id="yyyy"></span> B House Music · Hecho con ♥ · <a class="underline" target="_blank" href="https://wa.me/50670166631">WhatsApp</a>
+  </footer>
+
+  <script>
+    // ====== CONFIG EDITABLE ======
+    const CONFIG = {
+      TZ: 'America/Costa_Rica',
+      workingDays: [0,6], // 0=Dom, 6=Sab (solo fines de semana)
+      startHour: 10,      // 10:00
+      endHour: 18,        // 18:00 -> la sesión debe terminar a esta hora o antes
+      stepMinutes: 30,    // intervalos para mostrar slots
+      whatsappNumber: '50670166631',
+      api: {
+        // reemplaza estos endpoints si conectas Google Apps Script o tu backend
+        availabilityGET: null, // e.g. 'https://script.google.com/macros/s/XXXX/exec?action=availability&date=YYYY-MM-DD'
+        bookingPOST: null      // e.g. 'https://script.google.com/macros/s/XXXX/exec' (POST)
+      },
+      packages: {
+        Express:  { price: 100, duration: 60,  bufferAfter: 120, maxAccessories: 2 },
+        DosHoras: { price: 150, duration: 120, bufferAfter: 0,   maxAccessories: 999 },
+        Premium:  { price: 300, duration: 240, bufferAfter: 0,   maxAccessories: 999 }
+      },
+      extraHourUSD: 200,
+      accessories: [
+        'Estabilizador (gimbal)', 'Drone', 'Kit de luces', 'Máquina de humo', 'Lente 85mm', 'Lente 28–70mm', 'Lente 11mm', 'Micrófonos / audio', 'Trípode', 'Fondos / backdrops'
+      ]
+    };
+
+    // ====== STATE ======
+    const state = {
+      pkgKey: null,
+      acc: new Set(),
+      dateISO: null, // YYYY-MM-DD
+      slotStart: null, // 'HH:MM'
+    };
+
+    // ====== UTILS ======
+    const pad = n => String(n).padStart(2,'0');
+    const fmtMoney = v => `$${v.toLocaleString('en-US', {minimumFractionDigits:0})}`;
+    const toISODate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    const parseISODate = (iso) => { const [y,m,da]=iso.split('-').map(Number); return new Date(y, m-1, da); };
+    const fmtHuman = (iso) => {
+      const d = parseISODate(iso);
+      return d.toLocaleDateString('es-CR', { weekday:'long', day:'2-digit', month:'long' });
+    };
+    const addMinutes = (timeStr, mins) => {
+      const [H,M] = timeStr.split(':').map(Number);
+      const d = new Date(); d.setHours(H, M, 0, 0); d.setMinutes(d.getMinutes()+mins);
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
+    // ====== ACCESSORIOS RENDER ======
+    const accWrap = document.getElementById('acc-list');
+    CONFIG.accessories.forEach((label, idx)=>{
+      const id = `acc-${idx}`;
+      const el = document.createElement('label');
+      el.className = 'flex items-center gap-2 p-2 rounded-xl border border-white/10 hover:bg-white/5';
+      el.innerHTML = `<input type="checkbox" class="h-4 w-4" data-acc="${label}"> <span>${label}</span>`;
+      accWrap.appendChild(el);
+    });
+
+    accWrap.addEventListener('change', (e)=>{
+      if(!e.target.matches('input[type="checkbox"]')) return;
+      const label = e.target.getAttribute('data-acc');
+      if(e.target.checked){ state.acc.add(label); } else { state.acc.delete(label); }
+      // Enforce Express max 2
+      if(state.pkgKey === 'Express'){
+        if(state.acc.size > CONFIG.packages.Express.maxAccessories){
+          e.target.checked = false; state.acc.delete(label);
+          alert('En paquete Express solo se permiten 2 accesorios.');
+        }
+      }
+      renderSummary();
+    });
+
+    // ====== PAQUETES ======
+    document.querySelectorAll('.selectPkg').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        state.pkgKey = btn.dataset.pkg;
+        document.querySelectorAll('[id^="pkg-"]').forEach(c=>c.classList.remove('ring-2','ring-sky-400'));
+        document.getElementById(`pkg-${state.pkgKey}`).classList.add('ring-2','ring-sky-400');
+        // validar accesorios si Express
+        if(state.pkgKey==='Express' && state.acc.size>CONFIG.packages.Express.maxAccessories){
+          state.acc = new Set([...state.acc].slice(0, CONFIG.packages.Express.maxAccessories));
+          // sync checkboxes
+          document.querySelectorAll('#acc-list input[type="checkbox"]').forEach(chk=>{
+            const label = chk.getAttribute('data-acc');
+            chk.checked = state.acc.has(label);
+          });
+        }
+        renderSummary();
+        refreshSlots();
+        window.scrollTo({top: document.body.scrollHeight/4, behavior:'smooth'});
+      });
+    });
+
+    // ====== CALENDARIO ======
+    const calTitle = document.getElementById('calTitle');
+    const calGrid = document.getElementById('calGrid');
+    const slotDateLabel = document.getElementById('slotDateLabel');
+    let viewYear, viewMonth; // 0..11
+
+    function setMonth(y,m){ viewYear=y; viewMonth=m; renderCalendar(); }
+
+    function renderCalendar(){
+      const first = new Date(viewYear, viewMonth, 1);
+      const last = new Date(viewYear, viewMonth+1, 0);
+      calTitle.textContent = `${first.toLocaleString('es-CR',{month:'long'})} ${viewYear}`;
+
+      // compute offset (we start week on Monday)
+      let startIdx = (first.getDay() + 6) % 7; // 0=Mon
+      const cells = [];
+      // prev month padding
+      const prevLast = new Date(viewYear, viewMonth, 0).getDate();
+      for(let i=startIdx-1;i>=0;i--){ cells.push({day: prevLast - i, other:true}); }
+      // current month
+      for(let d=1; d<=last.getDate(); d++){ cells.push({day:d, other:false}); }
+      // next padding to fill weeks
+      while(cells.length % 7 !== 0){ cells.push({day: cells.length, other:true}); }
+
+      calGrid.innerHTML = '';
+      cells.forEach((c,idx)=>{
+        const inMonth = !c.other;
+        const date = new Date(viewYear, viewMonth, inMonth?c.day: (idx<startIdx? (new Date(viewYear, viewMonth, 0).getDate() - (startIdx-1-idx)) : (idx - (startIdx + (new Date(viewYear, viewMonth+1,0).getDate())) +1)) );
+        const iso = toISODate(date);
+        const isWeekend = CONFIG.workingDays.includes(date.getDay());
+        const isCurrentMonth = date.getMonth()===viewMonth;
+        const disabled = !isCurrentMonth || !isWeekend || date < new Date(new Date().toDateString());
+        const cell = document.createElement('button');
+        cell.className = `day-cell ${disabled? 'day-disabled':''}`;
+        cell.innerHTML = `<div class="text-sm">${c.day}</div><div class="text-right text-[10px] text-slate-400">${isWeekend && isCurrentMonth ? 'Disponible' : ''}</div>`;
+        cell.addEventListener('click', ()=>{
+          if(disabled) return;
+          state.dateISO = iso; refreshSlots();
+          document.querySelectorAll('.day-cell').forEach(el=>el.classList.remove('ring-2','ring-sky-400'));
+          cell.classList.add('ring-2','ring-sky-400');
+          slotDateLabel.textContent = `· ${fmtHuman(iso)}`;
+        });
+        calGrid.appendChild(cell);
+      });
+    }
+
+    document.getElementById('prevMonth').onclick = ()=>{
+      const d = new Date(viewYear, viewMonth-1, 1); setMonth(d.getFullYear(), d.getMonth());
+    };
+    document.getElementById('nextMonth').onclick = ()=>{
+      const d = new Date(viewYear, viewMonth+1, 1); setMonth(d.getFullYear(), d.getMonth());
+    };
+
+    // ====== SLOTS ======
+    const slotsWrap = document.getElementById('slots');
+
+    async function refreshSlots(){
+      slotsWrap.innerHTML = '';
+      if(!state.dateISO){ slotsWrap.innerHTML = `<p class="text-slate-400 text-sm">Elegí primero un día del calendario.</p>`; return; }
+      if(!state.pkgKey){ slotsWrap.innerHTML = `<p class="text-slate-400 text-sm">Elegí primero un paquete.</p>`; return; }
+
+      const pkg = CONFIG.packages[state.pkgKey];
+      const start = CONFIG.startHour, end = CONFIG.endHour; // working window
+      const times = [];
+      for(let h=start; h<=end; h++){
+        for(let m=0; m<60; m+=CONFIG.stepMinutes){
+          const t = `${pad(h)}:${pad(m)}`;
+          const endTime = addMinutes(t, pkg.duration);
+          if(endTime <= `${pad(end)}:00`){ // must finish by endHour sharp
+            times.push(t);
+          }
+        }
+      }
+
+      // TODO: if CONFIG.api.availabilityGET -> fetch busy slots and filter
+      // For now, only rule-based availability and bufferAfter for Express
+
+      const frag = document.createDocumentFragment();
+      times.forEach(t=>{
+        let disabled = false;
+        // If Express bufferAfter blocks next slots within 120 min from end
+        if(state.pkgKey==='Express'){
+          const endTime = addMinutes(t, pkg.duration);
+          const bufferEnd = addMinutes(endTime, pkg.bufferAfter);
+          // We don't know the next reservations yet (no backend), so we only ensure we don't overflow closing time with buffer
+          if(bufferEnd > `${pad(end)}:00`) disabled = true;
+        }
+        const btn = document.createElement('button');
+        btn.className = 'slot w-full text-left hover:bg-white/5';
+        if(disabled) btn.setAttribute('disabled','');
+        btn.innerHTML = `<div><div class="font-semibold">${t} — ${addMinutes(t, pkg.duration)}</div><div class="text-xs text-slate-400">${state.pkgKey} · ${fmtMoney(pkg.price)}</div></div><div class="text-xs">Elegir</div>`;
+        btn.addEventListener('click', ()=>{ if(disabled) return; state.slotStart = t; renderSummary(); });
+        frag.appendChild(btn);
+      });
+      slotsWrap.appendChild(frag);
+    }
+
+    // ====== RESUMEN ======
+    const summary = document.getElementById('summary');
+    function renderSummary(){
+      const pkg = state.pkgKey ? CONFIG.packages[state.pkgKey] : null;
+      const accList = [...state.acc];
+      const dateStr = state.dateISO ? fmtHuman(state.dateISO) : '—';
+      const timeStr = state.slotStart ? `${state.slotStart} — ${state.slotStart && pkg? addMinutes(state.slotStart, pkg.duration):''}` : '—';
+      const subtotal = pkg? pkg.price : 0;
+      summary.innerHTML = `
+        <div class="p-3 rounded-xl border border-white/10">
+          <div class="text-sm text-slate-400">Paquete</div>
+          <div class="font-semibold text-lg">${state.pkgKey || 'Elegí un paquete'}</div>
+          ${pkg? `<div class="text-sm text-slate-400">Duración: ${pkg.duration} min · ${fmtMoney(pkg.price)}</div>`:''}
+        </div>
+        <div class="p-3 rounded-xl border border-white/10">
+          <div class="text-sm text-slate-400">Fecha</div>
+          <div class="font-semibold">${dateStr}</div>
+          <div class="text-sm text-slate-400">Hora: ${timeStr}</div>
+        </div>
+        <div class="p-3 rounded-xl border border-white/10">
+          <div class="text-sm text-slate-400">Accesorios (${accList.length})</div>
+          <div class="text-sm">${accList.length? accList.map(a=>`<span class='tag mr-1'>${a}</span>`).join(' ') : '—'}</div>
+        </div>
+        <div class="p-3 rounded-xl border border-white/10 flex items-center justify-between">
+          <div>
+            <div class="text-sm text-slate-400">Subtotal paquete</div>
+            <div class="font-bold text-xl">${fmtMoney(subtotal)}</div>
+          </div>
+          <div class="text-right text-xs text-slate-400">Se cobrará hora extra a ${fmtMoney(CONFIG.extraHourUSD)}/h si se excede el tiempo.</div>
+        </div>
+      `;
+
+      // build WhatsApp links
+      const baseMsg = encodeURIComponent([
+        'Solicitud de reserva — B House Music',
+        `Paquete: ${state.pkgKey || '—'}`,
+        `Fecha: ${state.dateISO? fmtHuman(state.dateISO):'—'}`,
+        `Hora: ${timeStr}`,
+        `Accesorios: ${accList.length? accList.join(', '):'Ninguno'}`,
+        `Subtotal: ${fmtMoney(subtotal)}`,
+        '',
+        '¿Me confirmás disponibilidad?'
+      ].join('\n'));
+      const wa = `https://wa.me/${CONFIG.whatsappNumber}?text=${baseMsg}`;
+      document.getElementById('btnWhats').onclick = ()=> window.open(wa,'_blank');
+      document.getElementById('whatsHeader').href = wa;
+    }
+
+    // ====== FORM / BOOKING ======
+    const form = document.getElementById('bookForm');
+    const bookMsg = document.getElementById('bookMsg');
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault(); bookMsg.classList.add('hidden');
+      if(!state.pkgKey || !state.dateISO || !state.slotStart){
+        alert('Elegí paquete, fecha y hora primero.'); return;
+      }
+      if(CONFIG.packages[state.pkgKey] && state.pkgKey==='Express' && state.acc.size>CONFIG.packages.Express.maxAccessories){
+        alert('Express permite máximo 2 accesorios.'); return;
+      }
+
+      const pkg = CONFIG.packages[state.pkgKey];
+      const payload = {
+        action: 'book',
+        pkg: state.pkgKey,
+        date: state.dateISO,
+        start: state.slotStart,
+        end: addMinutes(state.slotStart, pkg.duration),
+        tz: CONFIG.TZ,
+        accessories: [...state.acc],
+        extraHourUSD: CONFIG.extraHourUSD,
+        priceUSD: pkg.price,
+        customer: Object.fromEntries(new FormData(form).entries())
+      };
+
+      if(!CONFIG.api.bookingPOST){
+        // Modo demo sin backend
+        bookMsg.textContent = '✅ Reserva preparada. Envía por WhatsApp para confirmar la disponibilidad.';
+        bookMsg.classList.remove('hidden');
+        return;
+      }
+
+      try{
+        const res = await fetch(CONFIG.api.bookingPOST, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+        const data = await res.json();
+        if(data.ok){
+          bookMsg.textContent = '✅ Reserva enviada. Pronto te confirmaremos por WhatsApp/Correo.';
+        }else{
+          bookMsg.textContent = 'No se pudo completar la reserva. Intenta por WhatsApp.';
+        }
+        bookMsg.classList.remove('hidden');
+      }catch(err){
+        console.error(err);
+        alert('Error de conexión. Podés confirmar por WhatsApp.');
+      }
+    });
+
+    // ====== ICS (añadir a mi calendario) ======
+    function makeICS(){
+      if(!state.pkgKey || !state.dateISO || !state.slotStart) { alert('Elegí paquete, fecha y hora.'); return; }
+      const pkg = CONFIG.packages[state.pkgKey];
+      const start = new Date(state.dateISO + 'T' + state.slotStart + ':00');
+      const end = new Date(state.dateISO + 'T' + addMinutes(state.slotStart, pkg.duration) + ':00');
+      const dt = (d)=> d.toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+      const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//B House//Booking//ES\nBEGIN:VEVENT\nUID:${crypto.randomUUID()}\nDTSTAMP:${dt(new Date())}\nDTSTART:${dt(start)}\nDTEND:${dt(end)}\nSUMMARY:B House — ${state.pkgKey}\nDESCRIPTION:Accesorios: ${[...state.acc].join(', ') || 'Ninguno'}\\nContacto: WhatsApp +${CONFIG.whatsappNumber}\nLOCATION:${(new FormData(form).get('location')||'Por definir')}\nEND:VEVENT\nEND:VCALENDAR`;
+      const blob = new Blob([ics], {type:'text/calendar'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download = `BHouse-${state.pkgKey}-${state.dateISO}.ics`; a.click();
+      setTimeout(()=>URL.revokeObjectURL(url), 1500);
+    }
+    document.getElementById('btnICS').onclick = makeICS;
+
+    // ====== TyC modal ======
+    const tcModal = document.getElementById('tcModal');
+    document.getElementById('openTC').onclick = ()=> tcModal.showModal();
+    document.getElementById('closeTC').onclick = ()=> tcModal.close();
+
+    // ====== INIT ======
+    (function init(){
+      const now = new Date(); setMonth(now.getFullYear(), now.getMonth());
+      renderSummary();
+      document.getElementById('yyyy').textContent = new Date().getFullYear();
+      document.title = 'B House | Agenda de Video';
+    })();
+  </script>
+</body>
+</html>
