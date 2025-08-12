@@ -404,8 +404,8 @@
         renderSummary();
         fetchAvailability();
         refreshSlots();
-        openGCalFor(state.pkgKey);
-ensureGCal({ 'ARTISTA':'artista', 'Express':'express', 'Premium':'premium' }[state.pkgKey] || 'express');
+openGCalFor(state.pkgKey); // esto ya muestra el tab y hace lazy-load
+
 
 
       });
@@ -787,20 +787,35 @@ form.addEventListener('submit', async (e) => {
     document.getElementById('openTC').onclick = ()=> tcModal.showModal();
     document.getElementById('closeTC').onclick = ()=> tcModal.close();
 // ====== GOOGLE CALENDAR TABS ======
-function setGCTab(tab) {
-  const ids = ['artista','express','premium'];
+function ensureGCal(tab) {
+  const pane = document.getElementById('gc-' + tab);
+  if (!pane) return;
+  const iframe = pane.querySelector('iframe');
+  const fb = pane.querySelector('.gc-fallback');
 
-  // ocultar todos
-  ids.forEach(id => {
+  // soporta data-src (lazy) o src directo
+  if (iframe && !iframe.src) {
+    let loaded = false;
+    iframe.addEventListener('load', () => {
+      loaded = true;
+      if (fb) fb.classList.add('hidden');
+    }, { once: true });
+
+    iframe.src = iframe.dataset.src || iframe.src;
+
+    // si no cargó (por bloqueo de embed), mostramos fallback
+    setTimeout(() => {
+      if (!loaded && fb) fb.classList.remove('hidden');
+    }, 2500);
+  }
+}
+
+function setGCTab(tab) {
+  ['artista','express','premium'].forEach(id => {
     const pane = document.getElementById('gc-' + id);
-    if (pane) pane.setAttribute('hidden', '');
+    if (pane) pane.toggleAttribute('hidden', id !== tab);
   });
 
-  // mostrar el seleccionado
-  const current = document.getElementById('gc-' + tab);
-  if (current) current.removeAttribute('hidden');
-
-  // estilos visuales de los botones
   document.querySelectorAll('.gc-tab').forEach(btn => {
     const active = btn.dataset.gc === tab;
     btn.classList.toggle('ring-2', active);
@@ -808,42 +823,23 @@ function setGCTab(tab) {
     btn.classList.toggle('bg-white/10', active);
   });
 
-  // cargar el iframe y manejar fallback
-  ensureGCal(tab);
+  ensureGCal(tab); // dispara el lazy-load del iframe seleccionado
 }
 
-// carga diferida del iframe y muestra fallback si el embed está bloqueado
-function ensureGCal(tab) {
-  const pane = document.getElementById('gc-' + tab);
-  if (!pane) return;
-
-  const iframe = pane.querySelector('iframe');
-  const fb = pane.querySelector('.gc-fallback');
-  if (!iframe || iframe.src) return; // ya cargado
-
-  let loaded = false;
-  iframe.addEventListener('load', () => {
-    loaded = true;
-    if (fb) fb.classList.add('hidden');
-  }, { once: true });
-
-  // asigna el src real (lazy)
-  iframe.src = iframe.dataset.src;
-
-  // si en ~2.5s no cargó, mostrar fallback
-  setTimeout(() => {
-    if (!loaded && fb) fb.classList.remove('hidden');
-  }, 2500);
-}
-
-// abre el tab correcto según el paquete y hace scroll a la sección
 function openGCalFor(pkgKey) {
-  const map = { 'ARTISTA':'artista', 'Express':'express', 'Premium':'premium' };
-  const tab = map[pkgKey] || 'express';
+  const tab = { 'ARTISTA':'artista', 'Express':'express', 'Premium':'premium' }[pkgKey] || 'express';
   setGCTab(tab);
   const sec = document.getElementById('gcal');
   if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+// clicks manuales en las pestañas
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.gc-tab');
+  if (!btn) return;
+  setGCTab(btn.dataset.gc);
+});
+
 
 // clicks manuales en las pestañas
 document.addEventListener('click', (e) => {
