@@ -173,16 +173,59 @@
       </div>
     </section>
 
-    <!-- Cancelación por consecutivo -->
-    <section class="glass rounded-2xl p-5 mt-6">
-      <h3 class="font-semibold mb-3">Cancelar / Rehabilitar reserva (por consecutivo)</h3>
-      <div class="flex flex-col sm:flex-row gap-2">
-        <input id="cancelId" class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10" placeholder="Ej. BHM-20250812-0003" />
-        <button id="btnLocate" type="button" class="px-4 py-2 rounded-xl border border-white/20">Ver en calendario</button>
-        <button id="btnCancel" type="button" class="px-4 py-2 rounded-xl bg-rose-500/90 text-slate-900 font-bold">Eliminar y liberar</button>
-      </div>
-      <p id="cancelMsg" class="text-sm mt-2 text-slate-300"></p>
-    </section>
+// ====== CANCELACIÓN / LOCALIZAR (con backend) ======
+const cancelInput = document.getElementById('cancelId');
+const cancelMsg = document.getElementById('cancelMsg');
+
+document.getElementById('btnLocate').onclick = async ()=>{
+  const id = (cancelInput.value||'').trim();
+  if(!id){ cancelMsg.textContent = 'Ingresá el consecutivo.'; return; }
+  try{
+    const base = CONFIG.api.availabilityGET.replace('action=availability','action=locate');
+    const res = await fetch(`${base}&id=${encodeURIComponent(id)}`);
+    const data = await res.json();
+    if(!data.ok || !data.booking){ cancelMsg.textContent = 'No encontré esa reserva.'; return; }
+
+    const b = data.booking;
+    const d = parseISODate(b.date);
+    setMonth(d.getFullYear(), d.getMonth());
+    state.dateISO = b.date;
+    slotDateLabel.textContent = `· ${fmtHuman(b.date)}`;
+    const chosen = [...calGrid.querySelectorAll('.day-cell')].find(x=> x.dataset.iso===b.date);
+    document.querySelectorAll('.day-cell').forEach(el=>el.classList.remove('ring-2','ring-sky-400'));
+    if(chosen){ chosen.classList.add('ring-2','ring-sky-400'); }
+
+    await fetchAvailability();
+    refreshSlots();
+    cancelMsg.textContent = `Reserva ${b.id}: ${b.date} ${b.start}–${b.end} (${b.pkg}).`;
+    document.getElementById('slots').scrollIntoView({behavior:'smooth', block:'start'});
+  }catch(err){
+    cancelMsg.textContent = 'Error al consultar.';
+  }
+};
+
+document.getElementById('btnCancel').onclick = async ()=>{
+  const id = (cancelInput.value||'').trim();
+  if(!id){ cancelMsg.textContent = 'Ingresá el consecutivo.'; return; }
+  try{
+    const res = await fetch(CONFIG.api.bookingPOST, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action:'cancel', id })
+    });
+    const data = await res.json();
+    if(data.ok){
+      if(state.dateISO){ await fetchAvailability(); refreshSlots(); }
+      cancelMsg.textContent = `✅ Reserva ${id} eliminada y horario liberado.`;
+      if(state.lastBookingId === id) state.lastBookingId = null;
+      renderSummary();
+    } else {
+      cancelMsg.textContent = data.error || 'No se pudo cancelar.';
+    }
+  }catch(err){
+    cancelMsg.textContent = 'Error de conexión.';
+  }
+};
 
     <!-- Modal TyC -->
     <dialog id="tcModal" class="w-full max-w-3xl bg-slate-900/95 text-slate-100 rounded-2xl p-0 border border-white/10">
@@ -218,12 +261,11 @@
       endHour: 18,        // 18:00 -> la sesión debe terminar a esta hora o antes
       stepMinutes: 30,    // intervalos base (se ignora para ciertas reglas por paquete)
       whatsappNumber: '50670166631',
-      api: {
-        // availabilityGET debe responder: { ok:true, busy:[{start:'HH:MM', end:'HH:MM'}] }
-        // bookingPOST debe aceptar el payload y devolver { ok:true, id:'<consecutivo>' }
-        availabilityGET: null, // 'https://script.google.com/macros/s/XXXX/exec?action=availability&date=YYYY-MM-DD'
-        bookingPOST: null      // 'https://script.google.com/macros/s/XXXX/exec'
-      },
+api: {
+  availabilityGET: 'https://script.google.com/macros/s/AKfycbzTEHYEipefC4LyW4tCvm-CiOySzi5OcKKHcZJ9x1LpmqvHHNmDMqJoY5um33N9F4Vb/exec?action=availability',
+  bookingPOST:     'https://script.google.com/macros/s/AKfycbzTEHYEipefC4LyW4tCvm-CiOySzi5OcKKHcZJ9x1LpmqvHHNmDMqJoY5um33N9F4Vb/exec'
+},
+
       packages: {
         Express:  { price: 200, duration: 60,  bufferAfter: 120, maxAccessories: 2,   banned:['Drone'] },
         ARTISTA:  { price: 450, duration: 180, bufferAfter: 0,   maxAccessories: 5,   banned:['Drone'] },
@@ -408,7 +450,7 @@
 
       if(CONFIG.api.availabilityGET){
         try{
-          const url = `${CONFIG.api.availabilityGET}?date=${encodeURIComponent(state.dateISO)}` + (state.pkgKey? `&pkg=${encodeURIComponent(state.pkgKey)}`:'');
+          const url = `${CONFIG.api.availabilityGET}&date=${encodeURIComponent(state.dateISO)}` + (state.pkgKey? `&pkg=${encodeURIComponent(state.pkgKey)}`:'');
           const res = await fetch(url);
           const data = await res.json();
           if(data && data.ok && Array.isArray(data.busy)){
@@ -757,7 +799,7 @@ form.addEventListener('submit', async (e) => {
 
       // Disponibilidad: WhatsApp link
       state.pkgKey = 'Express'; state.dateISO = toISODate(new Date()); state.slotStart = '10:00'; renderSummary();
-      assert('WhatsApp link generado', !!document.getElementById('whatsHeader').href);
+      assert('WhatsApp link generado', typeof window.__waHref === 'string' && window.__waHref.length>0);
 
       // === Tests de bloqueos ===
       const storeBackup = localStorage.getItem(store.key) || '[]';
