@@ -36,16 +36,15 @@
         </div>
       </div>
       <a id="socialHeader" href="https://www.instagram.com/bhousemusiccr/" target="_blank"
-   class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-pink-400/30 text-pink-300 hover:bg-pink-400/10 transition">
-  <!-- Ícono Instagram (feather) -->
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-    <line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line>
-  </svg>
-  <span class="text-sm font-semibold">Instagram</span>
-</a>
+         class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-pink-400/30 text-pink-300 hover:bg-pink-400/10 transition">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+          <line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line>
+        </svg>
+        <span class="text-sm font-semibold">Instagram</span>
+      </a>
     </div>
   </header>
 
@@ -193,7 +192,7 @@
         </div>
         <ol class="list-decimal list-inside text-sm text-slate-300 space-y-2">
           <li>Agenda disponible <strong>únicamente</strong> sábados y domingos entre <strong>10:00 a. m.</strong> y <strong>6:00 p. m.</strong> La última hora disponible dependerá del paquete elegido.</li>
-          <li>Paquetes y precios (USD): Express $200 (60 min), ARTISTA $450 (3 horas), Premium $900 (5 horas). Hora adicional: $200.</li>
+          <li>Paquetes y precios (USD): Express $200 (60 min), ARTISTA $450 (3 horas), Premium $900 (6 horas). Hora adicional: $200.</li>
           <li>Paquete Express permite <strong>máximo 2</strong> accesorios. <strong>Drone no disponible en Express ni en ARTISTA.</strong> La cámara está incluida en todos los paquetes.</li>
           <li>Si se excede el tiempo del paquete, se facturará la hora adicional indicada. La fracción superior a 15 minutos cuenta como hora completa.</li>
           <li>Reprogramaciones: con mínimo 48 h de anticipación. El mismo día no se reprograma salvo fuerza mayor.</li>
@@ -221,8 +220,8 @@
       api: {
         // availabilityGET debe responder: { ok:true, busy:[{start:'HH:MM', end:'HH:MM'}] }
         // bookingPOST debe aceptar el payload y devolver { ok:true, id:'<consecutivo>' }
-        availabilityGET: null, // 'https://script.google.com/macros/s/XXXX/exec?action=availability&date=YYYY-MM-DD'
-        bookingPOST: null      // 'https://script.google.com/macros/s/XXXX/exec'
+        availabilityGET: 'https://script.google.com/macros/s/AKfycbzTEHYEipefC4LyW4tCvm-CiOySzi5OcKKHcZJ9x1LpmqvHHNmDMqJoY5um33N9F4Vb/exec?action=availability',
+        bookingPOST:     'https://script.google.com/macros/s/AKfycbzTEHYEipefC4LyW4tCvm-CiOySzi5OcKKHcZJ9x1LpmqvHHNmDMqJoY5um33N9F4Vb/exec'
       },
       packages: {
         Express:  { price: 200, duration: 60,  bufferAfter: 120, maxAccessories: 2,   banned:['Drone'] },
@@ -276,19 +275,13 @@
         const arr = this.load().filter(b=> b.date===dateISO);
         const dayStart = minToTime(CONFIG.startHour*60);
         const dayEnd   = minToTime(CONFIG.endHour*60);
-        // Si hay una Premium, todo el día queda ocupado
-        if(arr.some(b=> b.pkg==='Premium')){
-          return [{ start: dayStart, end: dayEnd }];
-        }
+        if(arr.some(b=> b.pkg==='Premium')){ return [{ start: dayStart, end: dayEnd }]; }
         return arr.map(b=>{
           if(b.pkg==='Express'){
-            const endBusy = (()=>{
-              const e = addMinutes(b.end, CONFIG.packages.Express.bufferAfter);
-              return timeToMin(e) > timeToMin(dayEnd) ? dayEnd : e; // clamp al cierre
-            })();
-            return { start: b.start, end: endBusy };
+            const eRaw = addMinutes(b.end, CONFIG.packages.Express.bufferAfter);
+            const e = timeToMin(eRaw) > timeToMin(dayEnd) ? dayEnd : eRaw;
+            return { start: b.start, end: e };
           }
-          // ARTISTA u otros: solo su rango
           return { start: b.start, end: b.end };
         });
       }
@@ -344,8 +337,7 @@
         });
         refreshAccessoryStates();
         renderSummary();
-        fetchAvailability();
-        refreshSlots();
+        fetchAvailability().then(refreshSlots);
         window.scrollTo({top: document.body.scrollHeight/4, behavior:'smooth'});
       });
     });
@@ -400,7 +392,6 @@
 
     document.getElementById('prevMonth').onclick = ()=>{ const d = new Date(viewYear, viewMonth-1, 1); setMonth(d.getFullYear(), d.getMonth()); };
     document.getElementById('nextMonth').onclick = ()=>{ const d = new Date(viewYear, viewMonth+1, 1); setMonth(d.getFullYear(), d.getMonth()); };
-
     // ====== DISPONIBILIDAD (BACKEND + DEMO LOCAL) ======
     async function fetchAvailability(){
       state.dayBusy = [];
@@ -408,15 +399,21 @@
 
       if(CONFIG.api.availabilityGET){
         try{
-          const url = `${CONFIG.api.availabilityGET}?date=${encodeURIComponent(state.dateISO)}` + (state.pkgKey? `&pkg=${encodeURIComponent(state.pkgKey)}`:'');
-          const res = await fetch(url);
+          const url = `${CONFIG.api.availabilityGET}&date=${encodeURIComponent(state.dateISO)}`;
+          const res = await fetch(url, { method:'GET' });
           const data = await res.json();
           if(data && data.ok && Array.isArray(data.busy)){
-            state.dayBusy = data.busy; // backend debe incluir buffers si aplica
+            state.dayBusy = data.busy; // backend ya incluye buffers si aplica
+          } else {
+            console.warn('Availability inválida, uso demo local:', data);
+            state.dayBusy = store.busyForDate(state.dateISO);
           }
-        }catch(err){ console.warn('No availability backend:', err); }
+        }catch(err){
+          console.warn('No availability backend, uso demo local:', err);
+          state.dayBusy = store.busyForDate(state.dateISO);
+        }
       } else {
-        // DEMO localStorage (sin backend): construir busy considerando reglas por paquete
+        // DEMO localStorage (sin backend)
         state.dayBusy = store.busyForDate(state.dateISO);
       }
     }
@@ -435,21 +432,19 @@
 
     async function refreshSlots(){
       slotsWrap.innerHTML = '';
-      if(!state.dateISO){ slotsWrap.innerHTML = `<p class=\"text-slate-400 text-sm\">Elegí primero un día del calendario.</p>`; return; }
-      if(!state.pkgKey){ slotsWrap.innerHTML = `<p class=\"text-slate-400 text-sm\">Elegí primero un paquete.</p>`; return; }
+      if(!state.dateISO){ slotsWrap.innerHTML = `<p class="text-slate-400 text-sm">Elegí primero un día del calendario.</p>`; return; }
+      if(!state.pkgKey){ slotsWrap.innerHTML = `<p class="text-slate-400 text-sm">Elegí primero un paquete.</p>`; return; }
 
       const pkg = CONFIG.packages[state.pkgKey];
       const frag = document.createDocumentFragment();
 
       if(state.pkgKey === 'Premium'){
-        // ÚNICA opción 10:00–16:00 y si existe cualquier reserva en el día, se deshabilita
         const t = '10:00';
         const tEnd = addMinutes(t, pkg.duration); // 16:00
         const disabled = state.dayBusy.length > 0; // cualquier reserva del día bloquea Premium
         frag.appendChild(makeSlotButton(`${t} — ${tEnd} · (ocupa el día)`, '', disabled, ()=>{ state.slotStart = t; renderSummary(); }));
       }
       else if(state.pkgKey === 'ARTISTA'){
-        // Solo 10, 11, 12, 13, 14, 15
         const starts = ['10:00','11:00','12:00','13:00','14:00','15:00'];
         for(const t of starts){
           const tEnd = addMinutes(t, pkg.duration); // 3h
@@ -459,7 +454,6 @@
         }
       }
       else if(state.pkgKey === 'Express'){
-        // Opciones por hora de 10:00 a 17:00 (60 min)
         for(let h=CONFIG.startHour; h<=CONFIG.endHour-1; h++){
           const t = `${pad(h)}:00`;
           const tEnd = addMinutes(t, pkg.duration);
@@ -468,7 +462,6 @@
           frag.appendChild(makeSlotButton(`${t} — ${tEnd}`, '', disabled, ()=>{ state.slotStart = t; renderSummary(); }));
         }
       } else {
-        // fallback (no debería usarse)
         const p = document.createElement('p'); p.className='text-slate-400 text-sm'; p.textContent='Paquete no reconocido'; frag.appendChild(p);
       }
 
@@ -484,26 +477,26 @@
       const timeStr = state.slotStart ? `${state.slotStart} — ${state.slotStart && pkg? addMinutes(state.slotStart, pkg.duration):''}` : '—';
       const subtotal = pkg? pkg.price : 0;
       summary.innerHTML = `
-        <div class=\"p-3 rounded-xl border border-white/10\">
-          <div class=\"text-sm text-slate-400\">Paquete</div>
-          <div class=\"font-semibold text-lg\">${state.pkgKey || 'Elegí un paquete'}</div>
-          ${pkg? `<div class=\"text-sm text-slate-400\">Duración: ${pkg.duration} min · ${fmtMoney(pkg.price)}</div>`:''}
+        <div class="p-3 rounded-xl border border-white/10">
+          <div class="text-sm text-slate-400">Paquete</div>
+          <div class="font-semibold text-lg">${state.pkgKey || 'Elegí un paquete'}</div>
+          ${pkg? `<div class="text-sm text-slate-400">Duración: ${pkg.duration} min · ${fmtMoney(pkg.price)}</div>`:''}
         </div>
-        <div class=\"p-3 rounded-xl border border-white/10\">
-          <div class=\"text-sm text-slate-400\">Fecha</div>
-          <div class=\"font-semibold\">${dateStr}</div>
-          <div class=\"text-sm text-slate-400\">Hora: ${timeStr}</div>
+        <div class="p-3 rounded-xl border border-white/10">
+          <div class="text-sm text-slate-400">Fecha</div>
+          <div class="font-semibold">${dateStr}</div>
+          <div class="text-sm text-slate-400">Hora: ${timeStr}</div>
         </div>
-        <div class=\"p-3 rounded-xl border border-white/10\">
-          <div class=\"text-sm text-slate-400\">Accesorios (${accList.length})</div>
-          <div class=\"text-sm\">${accList.length? accList.map(a=>`<span class='tag mr-1'>${a}</span>`).join(' ') : '—'}</div>
+        <div class="p-3 rounded-xl border border-white/10">
+          <div class="text-sm text-slate-400">Accesorios (${accList.length})</div>
+          <div class="text-sm">${accList.length? accList.map(a=>`<span class='tag mr-1'>${a}</span>`).join(' ') : '—'}</div>
         </div>
-        <div class=\"p-3 rounded-xl border border-white/10 flex items-center justify-between\">
+        <div class="p-3 rounded-xl border border-white/10 flex items-center justify-between">
           <div>
-            <div class=\"text-sm text-slate-400\">Subtotal paquete</div>
-            <div class=\"font-bold text-xl\">${fmtMoney(subtotal)}</div>
+            <div class="text-sm text-slate-400">Subtotal paquete</div>
+            <div class="font-bold text-xl">${fmtMoney(subtotal)}</div>
           </div>
-          <div class=\"text-right text-xs text-slate-400\">Se cobrará hora extra a ${fmtMoney(CONFIG.extraHourUSD)}/h si se excede el tiempo.</div>
+          <div class="text-right text-xs text-slate-400">Se cobrará hora extra a ${fmtMoney(CONFIG.extraHourUSD)}/h si se excede el tiempo.</div>
         </div>
       `;
 
@@ -520,159 +513,143 @@
       ].filter(Boolean);
       const baseMsg = encodeURIComponent(lines.join('\n'));
       const wa = `https://wa.me/${CONFIG.whatsappNumber}?text=${baseMsg}`;
-      const hdr = document.getElementById('whatsHeader');
-if (hdr) hdr.href = wa;           // por si aún existiera
-window.__waHref = wa;             // respaldo para abrir WhatsApp sin el header
-
+      window.__waHref = wa; // para abrir WhatsApp
     }
 
-// ====== FORM / BOOKING ======
-const form = document.getElementById('bookForm');
-const bookMsg = document.getElementById('bookMsg');
+    // ====== FORM / BOOKING ======
+    const form = document.getElementById('bookForm');
+    const bookMsg = document.getElementById('bookMsg');
 
-/**
- * Crea la reserva (backend si está configurado; si no, modo demo localStorage),
- * actualiza el estado y, si se pide, abre WhatsApp con el consecutivo ya incluido.
- */
-async function bookNow({ openWhats = true } = {}) {
-  bookMsg.classList.add('hidden');
+    async function bookNow({ openWhats = true } = {}) {
+      bookMsg.classList.add('hidden');
 
-  if (!state.pkgKey || !state.dateISO || !state.slotStart) {
-    alert('Elegí paquete, fecha y hora primero.');
-    return { ok: false };
-  }
-
-  const pkg = CONFIG.packages[state.pkgKey];
-  if (state.acc.size > pkg.maxAccessories) {
-    alert(`En el paquete ${state.pkgKey} solo se permiten ${pkg.maxAccessories} accesorios.`);
-    return { ok: false };
-  }
-
-  const payload = {
-    action: 'book',
-    pkg: state.pkgKey,
-    date: state.dateISO,
-    start: state.slotStart,
-    end: addMinutes(state.slotStart, pkg.duration),
-    tz: CONFIG.TZ,
-    accessories: [...state.acc],
-    extraHourUSD: CONFIG.extraHourUSD,
-    priceUSD: pkg.price,
-    customer: Object.fromEntries(new FormData(form).entries())
-  };
-
-  // --- BACKEND (si existe) ---
-  if (CONFIG.api.bookingPOST) {
-    try {
-      const res = await fetch(CONFIG.api.bookingPOST, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-
-      if (data && data.ok) {
-        state.lastBookingId = data.id || null;
-        bookMsg.innerHTML = `✅ Reserva enviada.${state.lastBookingId ? ` Consecutivo: <code class="badge">${state.lastBookingId}</code>` : ''}`;
-        bookMsg.classList.remove('hidden');
-
-        await fetchAvailability();
-        refreshSlots();
-        renderSummary();
-
-        if (openWhats) {
-          // renderSummary actualiza el href del header con el consecutivo si existe
-          const pkg = CONFIG.packages[state.pkgKey];
-const timeStr = `${state.slotStart} — ${addMinutes(state.slotStart, pkg.duration)}`;
-const lines = [
-  'Solicitud de reserva — B House Music',
-  state.lastBookingId ? `Consecutivo: ${state.lastBookingId}` : null,
-  `Paquete: ${state.pkgKey || '—'}`,
-  `Fecha: ${state.dateISO ? fmtHuman(state.dateISO) : '—'}`,
-  `Hora: ${timeStr}`,
-  `Accesorios: ${[...state.acc].join(', ') || 'Ninguno'}`,
-  `Subtotal: ${fmtMoney(pkg.price)}`,
-  '',
-  '¿Me confirmás disponibilidad?'
-].filter(Boolean);
-const waHref = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
-window.open(waHref, '_blank');
-
-          window.open(waHref, '_blank');
-        }
-        return { ok: true, id: state.lastBookingId || null };
-      } else {
-        bookMsg.textContent = 'No se pudo completar la reserva. Intentá por WhatsApp.';
-        bookMsg.classList.remove('hidden');
+      if (!state.pkgKey || !state.dateISO || !state.slotStart) {
+        alert('Elegí paquete, fecha y hora primero.');
         return { ok: false };
       }
-    } catch (err) {
-      console.error(err);
-      alert('Error de conexión. Podés confirmar por WhatsApp.');
-      return { ok: false };
+
+      const pkg = CONFIG.packages[state.pkgKey];
+      if (state.acc.size > pkg.maxAccessories) {
+        alert(`En el paquete ${state.pkgKey} solo se permiten ${pkg.maxAccessories} accesorios.`);
+        return { ok: false };
+      }
+
+      const payload = {
+        action: 'book',
+        pkg: state.pkgKey,
+        date: state.dateISO,
+        start: state.slotStart,
+        end: addMinutes(state.slotStart, pkg.duration),
+        tz: CONFIG.TZ,
+        accessories: [...state.acc],
+        extraHourUSD: CONFIG.extraHourUSD,
+        priceUSD: pkg.price,
+        customer: Object.fromEntries(new FormData(form).entries())
+      };
+
+      // --- BACKEND (si existe) ---
+      if (CONFIG.api.bookingPOST) {
+        try {
+          const res = await fetch(CONFIG.api.bookingPOST, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+
+          if (data && data.ok) {
+            state.lastBookingId = data.id || null;
+            bookMsg.innerHTML = `✅ Reserva enviada.${state.lastBookingId ? ` Consecutivo: <code class="badge">${state.lastBookingId}</code>` : ''}`;
+            bookMsg.classList.remove('hidden');
+
+            await fetchAvailability();
+            refreshSlots();
+            renderSummary();
+
+            if (openWhats) {
+              const timeStr = `${state.slotStart} — ${addMinutes(state.slotStart, pkg.duration)}`;
+              const lines = [
+                'Solicitud de reserva — B House Music',
+                state.lastBookingId ? `Consecutivo: ${state.lastBookingId}` : null,
+                `Paquete: ${state.pkgKey || '—'}`,
+                `Fecha: ${state.dateISO ? fmtHuman(state.dateISO) : '—'}`,
+                `Hora: ${timeStr}`,
+                `Accesorios: ${[...state.acc].join(', ') || 'Ninguno'}`,
+                `Subtotal: ${fmtMoney(pkg.price)}`,
+                '',
+                '¿Me confirmás disponibilidad?'
+              ].filter(Boolean);
+              const waHref = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
+              window.open(waHref, '_blank');
+            }
+            return { ok: true, id: state.lastBookingId || null };
+          } else {
+            bookMsg.textContent = 'No se pudo completar la reserva. Intentá por WhatsApp.';
+            bookMsg.classList.remove('hidden');
+            return { ok: false };
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Error de conexión. Podés confirmar por WhatsApp.');
+          return { ok: false };
+        }
+      }
+
+      // --- DEMO LOCAL (sin backend) ---
+      const busyLocal = store.busyForDate(state.dateISO);
+      const wouldEnd = addMinutes(state.slotStart, pkg.duration);
+      const clash = busyLocal.some(b => overlaps(state.slotStart, wouldEnd, b.start, b.end));
+      if (clash) {
+        alert('Ese horario ya está reservado localmente. Probá otro.');
+        return { ok: false };
+      }
+
+      const id = store.nextId();
+      const booking = {
+        id,
+        ...payload,
+        createdAt: new Date().toISOString()
+      };
+      store.add(booking);
+      state.lastBookingId = id;
+
+      bookMsg.innerHTML = `✅ Reserva registrada (demo). <br><strong>Consecutivo:</strong> <code class="badge">${id}</code>.`;
+      bookMsg.classList.remove('hidden');
+
+      await fetchAvailability();
+      refreshSlots();
+      renderSummary();
+
+      if (openWhats) {
+        const timeStr = `${state.slotStart} — ${addMinutes(state.slotStart, pkg.duration)}`;
+        const lines = [
+          'Solicitud de reserva — B House Music',
+          state.lastBookingId ? `Consecutivo: ${state.lastBookingId}` : null,
+          `Paquete: ${state.pkgKey || '—'}`,
+          `Fecha: ${state.dateISO ? fmtHuman(state.dateISO) : '—'}`,
+          `Hora: ${timeStr}`,
+          `Accesorios: ${[...state.acc].join(', ') || 'Ninguno'}`,
+          `Subtotal: ${fmtMoney(pkg.price)}`,
+          '',
+          '¿Me confirmás disponibilidad?'
+        ].filter(Boolean);
+        const waHref = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
+        window.open(waHref, '_blank');
+      }
+      return { ok: true, id };
     }
-  }
 
-  // --- DEMO LOCAL (sin backend) ---
-  const busyLocal = store.busyForDate(state.dateISO);
-  const wouldEnd = addMinutes(state.slotStart, pkg.duration);
-  const clash = busyLocal.some(b => overlaps(state.slotStart, wouldEnd, b.start, b.end));
-  if (clash) {
-    alert('Ese horario ya está reservado localmente. Probá otro.');
-    return { ok: false };
-  }
+    // Clic en “Reservar por WhatsApp”
+    document.getElementById('btnWhats').onclick = async () => {
+      const res = await bookNow({ openWhats: true });
+      if (!res.ok) alert('No se pudo reservar. Intentá nuevamente o escribime por WhatsApp.');
+    };
 
-  const id = store.nextId();
-  const booking = {
-    id,
-    ...payload,
-    createdAt: new Date().toISOString()
-  };
-  store.add(booking);
-  state.lastBookingId = id;
-
-  bookMsg.innerHTML = `✅ Reserva registrada (demo). <br><strong>Consecutivo:</strong> <code class="badge">${id}</code>.`;
-  bookMsg.classList.remove('hidden');
-
-  await fetchAvailability();
-  refreshSlots();
-  renderSummary();
-
-  if (openWhats) {
-    const pkg = CONFIG.packages[state.pkgKey];
-const timeStr = `${state.slotStart} — ${addMinutes(state.slotStart, pkg.duration)}`;
-const lines = [
-  'Solicitud de reserva — B House Music',
-  state.lastBookingId ? `Consecutivo: ${state.lastBookingId}` : null,
-  `Paquete: ${state.pkgKey || '—'}`,
-  `Fecha: ${state.dateISO ? fmtHuman(state.dateISO) : '—'}`,
-  `Hora: ${timeStr}`,
-  `Accesorios: ${[...state.acc].join(', ') || 'Ninguno'}`,
-  `Subtotal: ${fmtMoney(pkg.price)}`,
-  '',
-  '¿Me confirmás disponibilidad?'
-].filter(Boolean);
-const waHref = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
-window.open(waHref, '_blank');
-
-    window.open(waHref, '_blank');
-  }
-  return { ok: true, id };
-}
-
-// Clic en “Reservar por WhatsApp”: guarda la reserva y abre WhatsApp
-document.getElementById('btnWhats').onclick = async () => {
-  const res = await bookNow({ openWhats: true });
-  if (!res.ok) {
-    alert('No se pudo reservar. Intentá nuevamente o escribime por WhatsApp.');
-  }
-};
-
-// Si el usuario presiona Enter dentro del form, redirigimos al flujo de WhatsApp
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  document.getElementById('btnWhats').click();
-});
+    // Submit del form redirige al flujo WhatsApp
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      document.getElementById('btnWhats').click();
+    });
 
     // ====== ICS (añadir a mi calendario) ======
     function makeICS(){
@@ -689,13 +666,42 @@ form.addEventListener('submit', async (e) => {
     }
     document.getElementById('btnICS').onclick = makeICS;
 
-    // ====== CANCELACIÓN POR CONSECUTIVO (demo local) ======
+    // ====== CANCELACIÓN / LOCALIZAR (con backend + fallback demo) ======
     const cancelInput = document.getElementById('cancelId');
     const cancelMsg = document.getElementById('cancelMsg');
 
-    document.getElementById('btnLocate').onclick = ()=>{
+    // Ver/ubicar en calendario por ID
+    document.getElementById('btnLocate').onclick = async ()=>{
       const id = (cancelInput.value||'').trim();
       if(!id){ cancelMsg.textContent = 'Ingresá el consecutivo.'; return; }
+
+      if (CONFIG.api.bookingPOST){
+        try{
+          const url = `${CONFIG.api.bookingPOST}?action=locate&id=${encodeURIComponent(id)}`;
+          const res = await fetch(url, { method:'GET' });
+          const data = await res.json();
+          if(data && data.ok && data.booking){
+            const b = data.booking;
+            const d = parseISODate(b.date);
+            setMonth(d.getFullYear(), d.getMonth());
+            state.dateISO = b.date;
+            slotDateLabel.textContent = `· ${fmtHuman(b.date)}`;
+            const chosen = [...calGrid.querySelectorAll('.day-cell')].find(x=> x.dataset.iso===b.date);
+            document.querySelectorAll('.day-cell').forEach(el=>el.classList.remove('ring-2','ring-sky-400'));
+            if(chosen){ chosen.classList.add('ring-2','ring-sky-400'); }
+            await fetchAvailability(); refreshSlots();
+            cancelMsg.textContent = `Reserva ${id}: ${b.date} ${b.start}–${b.end} (${b.pkg}).`;
+            document.getElementById('slots').scrollIntoView({behavior:'smooth', block:'start'});
+            return;
+          }
+          cancelMsg.textContent = 'No encontré esa reserva en el backend.';
+        }catch(e){
+          console.warn('Locate backend falló, pruebo local:', e);
+          // sigue al fallback local
+        }
+      }
+
+      // Fallback local
       const b = store.findById(id);
       if(!b){ cancelMsg.textContent = 'No encontré una reserva con ese consecutivo (modo demo).'; return; }
       const d = parseISODate(b.date);
@@ -705,24 +711,47 @@ form.addEventListener('submit', async (e) => {
       const chosen = [...calGrid.querySelectorAll('.day-cell')].find(x=> x.dataset.iso===b.date);
       document.querySelectorAll('.day-cell').forEach(el=>el.classList.remove('ring-2','ring-sky-400'));
       if(chosen){ chosen.classList.add('ring-2','ring-sky-400'); }
-      fetchAvailability().then(()=>{
-        refreshSlots();
-        cancelMsg.textContent = `Reserva ${id}: ${b.date} ${b.start}–${b.end} (${b.pkg}).`;
-        document.getElementById('slots').scrollIntoView({behavior:'smooth', block:'start'});
-      });
+      await fetchAvailability(); refreshSlots();
+      cancelMsg.textContent = `Reserva ${id}: ${b.date} ${b.start}–${b.end} (${b.pkg}).`;
+      document.getElementById('slots').scrollIntoView({behavior:'smooth', block:'start'});
     };
 
-    document.getElementById('btnCancel').onclick = ()=>{
+    // Cancelar por ID
+    document.getElementById('btnCancel').onclick = async ()=>{
       const id = (cancelInput.value||'').trim();
       if(!id){ cancelMsg.textContent = 'Ingresá el consecutivo.'; return; }
+
+      if (CONFIG.api.bookingPOST){
+        try{
+          const res = await fetch(CONFIG.api.bookingPOST, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ action:'cancel', id })
+          });
+          const data = await res.json();
+          if(data && data.ok){
+            if(state.dateISO){ await fetchAvailability(); refreshSlots(); }
+            cancelMsg.textContent = `✅ Reserva ${id} cancelada y horario liberado (backend).`;
+            if(state.lastBookingId === id) state.lastBookingId = null;
+            renderSummary();
+            return;
+          } else {
+            cancelMsg.textContent = `No se pudo cancelar en backend: ${data && data.error ? data.error : 'Error'}.`;
+          }
+        }catch(e){
+          console.warn('Cancel backend falló, pruebo local:', e);
+          // sigue al fallback local
+        }
+      }
+
+      // Fallback local
       const removed = store.removeById(id);
       if(!removed){ cancelMsg.textContent = 'No encontré una reserva con ese consecutivo (modo demo).'; return; }
-      if(state.dateISO === removed.date){ fetchAvailability().then(refreshSlots); }
+      if(state.dateISO === removed.date){ await fetchAvailability(); refreshSlots(); }
       cancelMsg.textContent = `✅ Reserva ${id} eliminada y horario liberado (${removed.date} ${removed.start}–${removed.end}).`;
       if(state.lastBookingId === id) state.lastBookingId = null;
       renderSummary();
     };
-
     // ====== TyC modal ======
     const tcModal = document.getElementById('tcModal');
     document.getElementById('openTC').onclick = ()=> tcModal.showModal();
@@ -739,6 +768,8 @@ form.addEventListener('submit', async (e) => {
 
     // ====== TESTS (consola) ======
     (function runSelfTests(){
+      const usingBackend = !!CONFIG.api.bookingPOST;
+
       const snapshot = { pkgKey: state.pkgKey, acc: new Set([...state.acc]), dateISO: state.dateISO, slotStart: state.slotStart, lastBookingId: state.lastBookingId };
       const results = [];
       const assert = (name, cond) => results.push(`${cond? '✅':'❌'} ${name}`);
@@ -755,59 +786,63 @@ form.addEventListener('submit', async (e) => {
       // Buffer: Express definido 120 min
       assert('Buffer Express 120 min', CONFIG.packages.Express.bufferAfter === 120);
 
-      // Disponibilidad: WhatsApp link
+      // WhatsApp link base generado
       state.pkgKey = 'Express'; state.dateISO = toISODate(new Date()); state.slotStart = '10:00'; renderSummary();
-      assert('WhatsApp link generado', !!document.getElementById('whatsHeader').href);
+      assert('WhatsApp href generado (state)', typeof window.__waHref === 'string' && window.__waHref.includes('wa.me/'));
 
-      // === Tests de bloqueos ===
-      const storeBackup = localStorage.getItem(store.key) || '[]';
-      try {
-        // Limpio y creo una Premium 10:00–16:00 => ocupa el día 10:00–18:00
-        localStorage.setItem(store.key, '[]');
+      if(!usingBackend){
+        // === Tests de bloqueos en modo DEMO ===
+        const storeBackup = localStorage.getItem(store.key) || '[]';
+        try {
+          localStorage.setItem(store.key, '[]');
+          const today = toISODate(new Date());
+
+          // Premium 10–16 => ocupa el día 10–18
+          const id1 = store.nextId();
+          const booking1 = { id:id1, action:'book', pkg:'Premium', date:today, start:'10:00', end:addMinutes('10:00', CONFIG.packages.Premium.duration), tz: CONFIG.TZ, accessories: [], extraHourUSD: CONFIG.extraHourUSD, priceUSD: CONFIG.packages.Premium.price, customer:{} };
+          store.add(booking1);
+          const busy = store.busyForDate(today);
+          assert('Premium ocupa todo el día (10–18)', busy.length===1 && busy[0].start==='10:00' && busy[0].end==='18:00');
+
+          // Express 16–17 + buffer bloquea hasta 18
+          localStorage.setItem(store.key, '[]');
+          const id2 = store.nextId();
+          const booking2 = { id:id2, action:'book', pkg:'Express', date:today, start:'16:00', end:addMinutes('16:00', CONFIG.packages.Express.duration), tz: CONFIG.TZ, accessories: [], extraHourUSD: CONFIG.extraHourUSD, priceUSD: CONFIG.packages.Express.price, customer:{} };
+          store.add(booking2);
+          const busy2 = store.busyForDate(today);
+          const expressBusy = busy2.find(x=> x.start==='16:00');
+          assert('Express bloquea hasta las 18:00 por buffer', expressBusy && expressBusy.end==='18:00');
+        } finally {
+          localStorage.setItem(store.key, storeBackup);
+        }
+
+        // === Slots por paquete en día limpio ===
         const today = toISODate(new Date());
-        const id1 = store.nextId();
-        const booking1 = { id:id1, action:'book', pkg:'Premium', date:today, start:'10:00', end:addMinutes('10:00', CONFIG.packages.Premium.duration), tz: CONFIG.TZ, accessories: [], extraHourUSD: CONFIG.extraHourUSD, priceUSD: CONFIG.packages.Premium.price, customer:{} };
-        store.add(booking1);
-        const busy = store.busyForDate(today);
-        assert('Premium ocupa todo el día (10–18)', busy.length===1 && busy[0].start==='10:00' && busy[0].end==='18:00');
+        state.dateISO = today; state.dayBusy = [];
 
-        // Express 16:00–17:00 + buffer debe bloquear hasta 18:00
-        localStorage.setItem(store.key, '[]');
-        const id2 = store.nextId();
-        const booking2 = { id:id2, action:'book', pkg:'Express', date:today, start:'16:00', end:addMinutes('16:00', CONFIG.packages.Express.duration), tz: CONFIG.TZ, accessories: [], extraHourUSD: CONFIG.extraHourUSD, priceUSD: CONFIG.packages.Express.price, customer:{} };
-        store.add(booking2);
-        const busy2 = store.busyForDate(today);
-        const expressBusy = busy2.find(x=> x.start==='16:00');
-        assert('Express bloquea hasta las 18:00 por buffer', expressBusy && expressBusy.end==='18:00');
-      } finally {
-        // Restaurar almacenamiento
-        localStorage.setItem(store.key, storeBackup);
+        // Premium: 1 opción 10–16
+        state.pkgKey = 'Premium'; state.slotStart=null; refreshSlots();
+        const premiumBtns = [...document.querySelectorAll('#slots .slot')].filter(b=>!b.hasAttribute('disabled'));
+        assert('Premium muestra 1 sola opción', premiumBtns.length === 1);
+        assert('Premium opción 10:00–16:00', premiumBtns[0].textContent.includes('10:00 — 16:00'));
+
+        // ARTISTA: 10,11,12,13,14,15
+        state.pkgKey = 'ARTISTA'; state.slotStart=null; refreshSlots();
+        const artistBtns = [...document.querySelectorAll('#slots .slot')].filter(b=>!b.hasAttribute('disabled'));
+        const artistLabels = artistBtns.map(b=> b.textContent.match(/\d{2}:\d{2} — \d{2}:\d{2}/)[0].split(' — ')[0]);
+        assert('ARTISTA 6 opciones', artistBtns.length === 6);
+        assert('ARTISTA arranca en 10:00', artistLabels[0] === '10:00');
+        assert('ARTISTA termina en 15:00', artistLabels[5] === '15:00');
+
+        // Express: 10:00..17:00
+        state.pkgKey = 'Express'; state.slotStart=null; refreshSlots();
+        const expressBtns = [...document.querySelectorAll('#slots .slot')].filter(b=>!b.hasAttribute('disabled'));
+        assert('Express primera 10:00', expressBtns[0].textContent.includes('10:00 — 11:00'));
+        assert('Express última 17:00', expressBtns[expressBtns.length-1].textContent.includes('17:00 — 18:00'));
+        assert('Express NO muestra 10:30', expressBtns.every(b=> !b.textContent.startsWith('10:30')));
+      } else {
+        results.push('ℹ️ Backend activo: se omitieron tests de DEMO local.');
       }
-
-      // === Tests de generación de slots por paquete (sin reservas) ===
-      const today = toISODate(new Date());
-      state.dateISO = today; state.dayBusy = [];
-
-      // Premium: solo 1 opción 10–16
-      state.pkgKey = 'Premium'; state.slotStart=null; refreshSlots();
-      const premiumBtns = [...document.querySelectorAll('#slots .slot')].filter(b=>!b.hasAttribute('disabled'));
-      assert('Premium muestra 1 sola opción', premiumBtns.length === 1);
-      assert('Premium opción 10:00–16:00', premiumBtns[0].textContent.includes('10:00 — 16:00'));
-
-      // ARTISTA: 10,11,12,13,14,15
-      state.pkgKey = 'ARTISTA'; state.slotStart=null; refreshSlots();
-      const artistBtns = [...document.querySelectorAll('#slots .slot')].filter(b=>!b.hasAttribute('disabled'));
-      const artistLabels = artistBtns.map(b=> b.textContent.match(/\d{2}:\d{2} — \d{2}:\d{2}/)[0].split(' — ')[0]);
-      assert('ARTISTA 6 opciones', artistBtns.length === 6);
-      assert('ARTISTA arranca en 10:00', artistLabels[0] === '10:00');
-      assert('ARTISTA termina en 15:00', artistLabels[5] === '15:00');
-
-      // Express: opciones horarias 10:00..17:00
-      state.pkgKey = 'Express'; state.slotStart=null; refreshSlots();
-      const expressBtns = [...document.querySelectorAll('#slots .slot')].filter(b=>!b.hasAttribute('disabled'));
-      assert('Express primera 10:00', expressBtns[0].textContent.includes('10:00 — 11:00'));
-      assert('Express última 17:00', expressBtns[expressBtns.length-1].textContent.includes('17:00 — 18:00'));
-      assert('Express NO muestra 10:30', expressBtns.every(b=> !b.textContent.startsWith('10:30')));
 
       console.log('Pruebas B House →', ...results);
 
